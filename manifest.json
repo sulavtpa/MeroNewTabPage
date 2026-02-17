@@ -1,14 +1,14 @@
 {
-	"name": "Humble New Tab Page",
-	"short_name": "HNTP",
+	"name": "Mero New Tab Page",
+	"short_name": "Mero",
 	"version": "1.26.2",
 	"minimum_chrome_version": "104",
 	"manifest_version": 3,
 	"description": "Redesigned new tab page featuring your bookmarks, apps, most visited, and recently closed in a custom layout.",
 	"icons": {
-		"128": "icons/icon_128.png",
-		"48": "icons/icon_48.png",
-		"16": "icons/icon_16.png"
+		"128": "icons/icon-128.png",
+		"48": "icons/icon-48.png",
+		"16": "icons/icon-16.png"
 	},
 	"permissions": [
 		"bookmarks",
@@ -16,7 +16,8 @@
 		"topSites",
 		"tabs",
 		"fontSettings",
-		"sessions"
+		"sessions",
+		"storage"
 	],
 	"optional_host_permissions": [
 		"file:///"
@@ -24,8 +25,11 @@
 	"chrome_url_overrides": {
 		"newtab": "newtab.html"
 	},
+	"action": {
+		"default_title": "Mero Settings"
+	},
 	"options_ui": {
-		"page": "newtab.html?options",
+		"page": "options.html",
 		"open_in_tab": true
 	}
 }

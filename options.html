@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mero Settings</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --fg: #ffffff;
+            --accent: #ffffff;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            width: 320px;
+            padding: 30px;
+            background: #0a0a0a;
+            color: var(--fg);
+            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+
+        .desc {
+            font-size: 13px;
+            opacity: 0.6;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--fg);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+        }
+
+        input,
+        select {
+            background: #000;
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Mero Tab</h2>
+    <p class="desc">Personalize your high-performance dashboard.</p>
+
+    <div class="field">
+        <label>Display Name</label>
+        <input type="text" id="nameInput" placeholder="Enter your name...">
+    </div>
+
+    <div class="field">
+        <label>Tab Title</label>
+        <input type="text" id="titleInput" placeholder="Mero Tab">
+    </div>
+
+    <button id="saveBtn" class="btn">Save & Refresh</button>
+    <a href="newtab.html" target="_blank" class="btn btn-outline">Full Customization</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const nameInput = document.getElementById('nameInput');
+            const titleInput = document.getElementById('titleInput');
+
+            const DEFAULT = {
+                userNameFull: '',
+                tabTitle: 'Mero Tab'
+            };
+
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+                chrome.storage.sync.get(DEFAULT, (result) => {
+                    nameInput.value = result.userNameFull || '';
+                    titleInput.value = result.tabTitle || '';
+                });
+            } else {
+                const saved = localStorage.getItem('mero_settings');
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    nameInput.value = settings.userNameFull || '';
+                    titleInput.value = settings.tabTitle || '';
+                }
+            }
+
+            document.getElementById('saveBtn').onclick = () => {
+                const data = {
+                    userNameFull: nameInput.value,
+                    tabTitle: titleInput.value
+                };
+
+                if (typeof chrome !== 'undefined' && chrome.storage) {
+                    chrome.storage.sync.set(data, () => {
+                        window.close();
+                    });
+                } else {
+                    const saved = localStorage.getItem('mero_settings') || '{}';
+                    const settings = { ...JSON.parse(saved), ...data };
+                    localStorage.setItem('mero_settings', JSON.stringify(settings));
+                    window.close();
+                }
+            };
+        });
+    </script>
+</body>
+
+</html>

@@ -1,140 +1,191 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-<meta charset="utf-8" />
-<title>New Tab</title>
-<link rel="stylesheet" href="newtab.css">
-<link rel="icon" href="icons/icon_16.png">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Mero Tab</title>
+	<link rel="stylesheet" href="newtab.css">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Outfit:wght@400;700&family=Space+Mono:wght@400;700&family=Noto+Sans:wght@400;700&family=Poppins:wght@400;700;800&family=Pacifico&family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&family=Caveat:wght@400;700&display=swap"
+		rel="stylesheet">
 </head>
+
 <body>
-<div id="main">
-</div>
-<a id="options_button" title="Options" tabindex="0"></a>
-<div id="options">
-	<a id="options_close_button" title="Close" tabindex="0">&times;</a>
-	<ul id="options_nav">
-		<li><a class="current" tabindex="0">Settings</a></li>
-		<li><a tabindex="0">Appearance</a></li>
-		<li><a tabindex="0">Import/Export</a></li>
-		<li><a tabindex="0">Advanced</a></li>
-	</ul>
-	<div class="section current">
-	<fieldset>
-		<legend>Settings</legend>
-		<label><span>Open links in</span><select id="options_newtab">
-			<option value="0">Current tab</option>
-			<option value="1">New tab</option>
-			<option value="2">New tab (background)</option>
-		</select></label>
-		<label><span>Lock columns</span><input id="options_lock" type="checkbox"/></label>
-		<label><span>Remember open folders</span><input id="options_remember_open" type="checkbox"/></label>
-		<label><span>Auto-close folders</span><input id="options_auto_close" type="checkbox"/></label>
-		<label><span>Show top-level folders</span><input id="options_show_root" type="checkbox"/></label>
-		<label><span>Hide options button</span><input id="options_hide_options" type="checkbox"/></label>
-	</fieldset>
-	<fieldset>
-		<legend>Content</legend>
-		<label><span>Apps</span><input id="options_show_apps" type="checkbox"/></label>
-		<div id="options_show_bookmarks"></div>
-		<label><span>Most visited</span><input id="options_show_top" type="checkbox"/></label>
-		<label class="subopt"><span>Number of items</span><input id="options_number_top" type="number" min="1" max="10"/></label>
-		<label><span>Recent bookmarks</span><input id="options_show_recent" type="checkbox"/></label>
-		<label class="subopt"><span>Number of items</span><input id="options_number_recent" type="number" min="1" max="1000"/></label>
-		<label><span>Recently closed</span><input id="options_show_closed" type="checkbox"/></label>
-		<label class="subopt"><span>Number of items</span><input id="options_number_closed" type="number" min="1" max="25"/></label>
-		<label><span>Other devices</span><input id="options_show_devices" type="checkbox"/></label>
-	</fieldset>
-	</div><div class="section">
-	<fieldset>
-		<legend>Font</legend>
-		<label><span>Font</span><input id="options_font" type="text"/></label>
-		<label><span>Size</span><input id="options_font_size" type="number" min="6" max="100"/></label>
-		<label><span>Weight</span><select id="options_font_weight">
-			<option value="100">Thin</option>
-			<option value="200">Extra Light</option>
-			<option value="300">Light</option>
-			<option value="400">Regular</option>
-			<option value="500">Medium</option>
-			<option value="600">Semi Bold</option>
-			<option value="700">Bold</option>
-			<option value="800">Extra Bold</option>
-			<option value="900">Heavy</option>
-		</select></label>
-	</fieldset>
-	<fieldset>
-		<legend>Colors</legend>
-		<label><span>Theme</span><select id="options_theme"></select></label>
-		<label><span>Text</span><input id="options_font_color" type="color"/></label>
-		<label><span>Background</span><input id="options_background_color" type="color"/></label>
-		<label><span>Highlight</span><input id="options_highlight_color" type="color"/></label>
-		<label><span>Highlight text</span><input id="options_highlight_font_color" type="color"/></label>
-		<label><span>Shadow</span><input id="options_shadow_color" type="color"/></label>
-	</fieldset>
-	<fieldset>
-		<legend>Layout</legend>
-		<label><span>Item spacing</span><input id="options_spacing" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Top margin</span><input id="options_v_margin" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Column width</span><input id="options_width" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Align</span><input id="options_h_pos" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Scale with window size</span><input id="options_auto_scale" type="checkbox"/></label>
-	</fieldset>
-	<fieldset>
-		<legend>Highlight</legend>
-		<label><span>Shadow size</span><input id="options_shadow_blur" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Corner roundness</span><input id="options_highlight_round" type="range" min="0" max="2" step="0.001"/></label>
-	</fieldset>
-	<fieldset>
-		<legend>Animation</legend>
-		<label><span>Highlight fade time</span><input id="options_fade" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Folder open time</span><input id="options_slide" type="range" min="0" max="2" step="0.001"/></label>
-	</fieldset>
-	<fieldset>
-		<legend>Background image</legend>
-		<label><span>URL</span><input id="options_background_image" type="url" placeholder="http://"/></label>
-		<label><span>Local file</span><input id="options_background_image_file" type="file" accept="image/*"/></label>
-		<label><span>Size</span><select id="options_background_size">
-			<option value="auto">Original</option>
-			<option value="cover">Full</option>
-			<option value="contain">Best fit</option>
-		</select></label>
-		<label><span>Align</span><select id="options_background_align">
-			<option value="left top">Top left</option>
-			<option value="top">Top</option>
-			<option value="right top">Top right</option>
-			<option value="left">Left</option>
-			<option value="center">Center</option>
-			<option value="right">Right</option>
-			<option value="left bottom">Bottom left</option>
-			<option value="bottom">Bottom</option>
-			<option value="right bottom">Bottom right</option>
-		</select></label>
-		<label><span>Tiling</span><select id="options_background_repeat">
-			<option value="repeat">Tile</option>
-			<option value="repeat-x">Horizontal</option>
-			<option value="repeat-y">Vertical</option>
-			<option value="no-repeat">None</option>
-		</select></label>
-	</fieldset>
-	</div><div class="section">
-	<fieldset>
-		<legend>Export Settings</legend>
-		<label><textarea id="options_export" readonly></textarea></label>
-	</fieldset>
-	<fieldset>
-		<legend>Import Settings</legend>
-		<label><textarea id="options_import"></textarea></label>
-	</fieldset>
-	</div><div class="section">
-	<fieldset>
-		<legend>Generated CSS</legend>
-		<label><textarea id="all_css" readonly></textarea></label>
-	</fieldset>
-	<fieldset>
-		<legend>Custom CSS</legend>
-		<label><textarea id="options_css"></textarea></label>
-	</fieldset>
+	<div class="app-container">
+		<main>
+			<section class="info-section">
+				<div class="greeting-container">
+					<h1 id="greeting" contenteditable="true" spellcheck="false">Good evening</h1>
+					<div id="time-large" class="time-container">
+						<span class="digit" id="hour-1">0</span>
+						<span class="digit" id="hour-2">0</span>
+						<span class="separator" id="sep-main">:</span>
+						<span class="digit" id="min-1">0</span>
+						<span class="digit" id="min-2">0</span>
+						<div id="seconds-container" class="seconds-container">
+							<span class="separator" id="sep-sec">:</span>
+							<span class="digit-sm" id="sec-1">0</span>
+							<span class="digit-sm" id="sec-2">0</span>
+						</div>
+					</div>
+					<p id="date-subtitle">Tuesday, February 17</p>
+				</div>
+			</section>
+
+			<section class="bookmarks-section" id="bookmarks-root"></section>
+		</main>
+
+		<div id="settings-toggle" class="settings-trigger-container" title="Settings">
+			<span class="settings-label">Settings</span>
+		</div>
+
+		<div id="settings-panel" class="settings-panel">
+			<div class="settings-header">
+				<h2>Customization</h2>
+			</div>
+			<div class="settings-content">
+				<div class="settings-group">
+					<h3>Appearance</h3>
+					<div class="setting-item">
+						<label>Theme</label>
+						<select id="setting-theme">
+							<option value="dark">Simple Dark (B&W)</option>
+							<option value="light">Simple Light</option>
+							<option value="everforest">Everforest Dark</option>
+							<option value="gruvbox">Gruvbox Dark</option>
+							<option value="dracula">Dracula</option>
+							<option value="custom">Custom</option>
+						</select>
+					</div>
+					<div class="setting-item">
+						<label>Background</label>
+						<input type="color" id="setting-bg" value="#000000">
+					</div>
+					<div class="setting-item">
+						<label>Accent</label>
+						<input type="color" id="setting-accent" value="#ffffff">
+					</div>
+					<div class="setting-item">
+						<label>Text</label>
+						<input type="color" id="setting-fg" value="#ffffff">
+					</div>
+				</div>
+
+				<div class="settings-group">
+					<h3>Typography</h3>
+					<div class="setting-item">
+						<label>Font Family</label>
+						<select id="setting-font">
+							<option value="'Inter', sans-serif">Inter</option>
+							<option value="'Outfit', sans-serif">Outfit</option>
+							<option value="'Poppins', sans-serif">Poppins</option>
+							<option value="'Noto Sans', sans-serif">Noto Sans</option>
+							<option value="'Space Mono', monospace">Space Mono</option>
+							<option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+							<option value="'Montserrat', sans-serif">Montserrat</option>
+							<option value="'Playfair Display', serif">Playfair Display</option>
+							<option value="'Pacifico', cursive">Pacifico (Cursive)</option>
+							<option value="'Caveat', cursive">Caveat</option>
+							<option value="serif">System Serif</option>
+							<option value="monospace">System Monospace</option>
+							<option value="custom">Custom Font...</option>
+						</select>
+					</div>
+					<div class="setting-item" id="custom-font-container" style="display: none;">
+						<label>Custom Font</label>
+						<input type="text" id="setting-font-custom" placeholder="e.g. 'Comic Sans MS'">
+					</div>
+					<div class="setting-item">
+						<label>Global Scale</label>
+						<div class="range-container">
+							<input type="range" id="setting-scale" min="0.8" max="1.5" step="0.1" value="1.0">
+							<span class="range-value" id="val-scale">1.0</span>
+						</div>
+					</div>
+					<div class="setting-item">
+						<label>Seconds Size</label>
+						<div class="range-container">
+							<input type="range" id="setting-sec-scale" min="0.2" max="1.0" step="0.05" value="0.4">
+							<span class="range-value" id="val-sec-scale">0.4</span>
+						</div>
+					</div>
+					<div class="setting-item">
+						<label>Clock Opacity</label>
+						<div class="range-container">
+							<input type="range" id="setting-clock-opacity" min="0" max="1" step="0.05" value="0.85">
+							<span class="range-value" id="val-clock-opacity">0.85</span>
+						</div>
+					</div>
+					<div class="setting-item">
+						<label>Max Folders per Row</label>
+						<div class="range-container">
+							<input type="range" id="setting-folders-per-row" min="1" max="6" step="1" value="3">
+							<span class="range-value" id="val-folders-per-row">3</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="settings-group">
+					<h3>Interface</h3>
+					<div class="setting-item">
+						<label>Show Seconds</label>
+						<input type="checkbox" id="setting-show-sec">
+					</div>
+					<div class="setting-item">
+						<label>Show Icons</label>
+						<input type="checkbox" id="setting-icons" checked>
+					</div>
+					<div class="setting-item">
+						<label>Clock Format</label>
+						<select id="setting-clock-format">
+							<option value="24h">24 Hour</option>
+							<option value="12h">12 Hour</option>
+						</select>
+					</div>
+					<div class="setting-item">
+						<label>Text Alignment</label>
+						<select id="setting-text-align">
+							<option value="left">Left</option>
+							<option value="center">Center</option>
+							<option value="right" selected>Right</option>
+						</select>
+					</div>
+					<div class="setting-item">
+						<label>Clock Colon Margin</label>
+						<div class="range-container">
+							<input type="range" id="setting-sep-margin" min="0" max="100" step="1" value="10">
+							<span class="range-value" id="val-sep-margin">10</span>
+						</div>
+					</div>
+					<div class="setting-item">
+						<label>Second Colon Margin</label>
+						<div class="range-container">
+							<input type="range" id="setting-sec-sep-margin" min="0" max="100" step="1" value="5">
+							<span class="range-value" id="val-sec-sep-margin">5</span>
+						</div>
+					</div>
+					<div class="setting-item">
+						<label>Settings Label Opacity</label>
+						<div class="range-container">
+							<input type="range" id="setting-settings-opacity" min="0" max="1" step="0.05" value="0.4">
+							<span class="range-value" id="val-settings-opacity">0.4</span>
+						</div>
+					</div>
+					<div class="setting-item">
+						<label>Tab Title</label>
+						<input type="text" id="setting-tab-title" placeholder="Mero Tab">
+					</div>
+				</div>
+
+
+				<button id="reset-settings" class="danger-button">Reset to Default</button>
+			</div>
+		</div>
 	</div>
-</div>
-<script src="newtab.js"></script>
+	<script src="newtab.js"></script>
 </body>
+
 </html>
