@@ -28,7 +28,10 @@ const THEMES = {
 	light: { bg: '#ffffff', fg: '#000000', accent: '#000000' },
 	everforest: { bg: '#2d353b', fg: '#d3c6aa', accent: '#a7c080' },
 	gruvbox: { bg: '#282828', fg: '#ebdbb2', accent: '#fabd2f' },
-	dracula: { bg: '#282a36', fg: '#f8f8f2', accent: '#bd93f9' }
+	dracula: { bg: '#282a36', fg: '#f8f8f2', accent: '#bd93f9' },
+	peach: { bg: '#FCF8F8', fg: '#433434', accent: '#F5AFAF' },
+	sea: { bg: '#09637E', fg: '#EBF4F6', accent: '#7AB2B2' },
+	black: { bg: '#000000', fg: '#ffffff', accent: '#ffffff' }
 };
 
 let settings = { ...DEFAULT_SETTINGS };
