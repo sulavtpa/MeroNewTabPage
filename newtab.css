@@ -321,8 +321,9 @@ main {
 	right: -420px;
 	width: 400px;
 	height: 100vh;
-	background: var(--panel-bg);
-	border-left: 1px solid var(--border);
+	background: #121214;
+	border-left: 1px solid rgba(255, 255, 255, 0.05);
+	color: #ffffff;
 	z-index: 1000;
 	transition: right 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
 	display: flex;
@@ -352,11 +353,11 @@ main {
 	font-weight: 800;
 	text-transform: uppercase;
 	letter-spacing: 2px;
-	color: var(--accent);
+	color: #ffffff;
 	margin-bottom: 25px;
-	border-bottom: 1px solid var(--border);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 	padding-bottom: 12px;
-	opacity: 0.8;
+	opacity: 0.9;
 }
 
 .setting-item {
@@ -369,19 +370,19 @@ main {
 .setting-item label {
 	font-size: 14px;
 	font-weight: 500;
-	color: var(--fg);
-	opacity: 0.8;
+	color: #ffffff;
+	opacity: 0.7;
 }
 
 select,
 input[type="text"] {
-	background: var(--bg);
-	border: 1px solid var(--border);
-	color: var(--fg);
+	background: #1c1c1f;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	color: #ffffff;
 	padding: 8px 12px;
 	border-radius: 8px;
 	outline: none;
-	font-family: inherit;
+	font-family: 'Inter', sans-serif;
 }
 
 input[type="range"] {
@@ -402,7 +403,7 @@ input[type="range"]::-webkit-slider-thumb {
 	appearance: none;
 	width: 14px;
 	height: 14px;
-	background: var(--accent);
+	background: #ffffff;
 	border-radius: 50%;
 	border: none;
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -437,14 +438,18 @@ input[type="color"]::-webkit-color-swatch {
 	appearance: none;
 	width: 36px;
 	height: 18px;
-	background: rgba(255, 255, 255, 0.1);
+	background: #3a3a3d;
 	border-radius: 20px;
 	position: relative;
 	transition: background 0.3s ease;
 }
 
 .setting-item input[type="checkbox"]:checked {
-	background: var(--accent);
+	background: #ffffff;
+}
+
+#setting-test-mode:checked {
+	background: #ff6b6b;
 }
 
 .setting-item input[type="checkbox"]::after {
@@ -453,15 +458,15 @@ input[type="color"]::-webkit-color-swatch {
 	width: 14px;
 	height: 14px;
 	border-radius: 50%;
-	background: var(--fg);
+	background: #ffffff;
 	top: 2px;
 	left: 2px;
-	transition: left 0.3s ease;
+	transition: all 0.3s ease;
 }
 
 .setting-item input[type="checkbox"]:checked::after {
 	left: 20px;
-	background: var(--bg);
+	background: #121214;
 }
 
 .range-container {

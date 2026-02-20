@@ -12,7 +12,6 @@ const DEFAULT_SETTINGS = {
 	showSeconds: false,
 	showIcons: true,
 	folderOrder: '',
-	userNameFull: '',
 	tabTitle: 'Mero Tab',
 	sepMargin: 10,
 	secSepMargin: 5,
@@ -20,7 +19,8 @@ const DEFAULT_SETTINGS = {
 	settingsOpacity: 0.4,
 	clockOpacity: 0.85,
 	fontCustom: '',
-	clockFormat: '24h'
+	clockFormat: '24h',
+	testMode: false
 };
 
 let settings = { ...DEFAULT_SETTINGS };
@@ -60,6 +60,7 @@ const elements = {
 	customFontContainer: document.getElementById('custom-font-container'),
 	customFontInput: document.getElementById('setting-font-custom'),
 	clockFormatSelect: document.getElementById('setting-clock-format'),
+	testModeToggle: document.getElementById('setting-test-mode'),
 	timeContainer: document.getElementById('time-large'),
 	secondsContainer: document.getElementById('seconds-container'),
 	digits: {
@@ -71,6 +72,30 @@ const elements = {
 		s2: document.getElementById('sec-2')
 	}
 };
+
+function debounce(func, wait) {
+	let timeout;
+	return function executedFunction(...args) {
+		const later = () => {
+			clearTimeout(timeout);
+			func(...args);
+		};
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+	};
+}
+
+const debouncedSave = debounce(() => {
+	try {
+		if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+			chrome.storage.sync.set(settings);
+		} else {
+			localStorage.setItem('mero_settings', JSON.stringify(settings));
+		}
+	} catch (e) {
+		console.error('Mero Tab: Failed to save settings', e);
+	}
+}, 300);
 
 async function init() {
 	try {
@@ -87,18 +112,29 @@ async function init() {
 
 function updateClock(immediate = false) {
 	const now = new Date();
-	let hours = now.getHours();
-	if (settings.clockFormat === '12h') {
-		hours = hours % 12 || 12;
+	let hours, minutes, seconds;
+
+	if (settings.testMode) {
+		hours = 0;
+		minutes = 0;
+		seconds = 0;
+	} else {
+		hours = now.getHours();
+		if (settings.clockFormat === '12h') {
+			hours = hours % 12 || 12;
+		}
+		minutes = now.getMinutes();
+		seconds = now.getSeconds();
 	}
+
 	const hoursStr = String(hours).padStart(2, '0');
-	const minutes = String(now.getMinutes()).padStart(2, '0');
-	const seconds = String(now.getSeconds()).padStart(2, '0');
+	const minutesStr = String(minutes).padStart(2, '0');
+	const secondsStr = String(seconds).padStart(2, '0');
 
 	const newDigits = {
 		h1: hoursStr[0], h2: hoursStr[1],
-		m1: minutes[0], m2: minutes[1],
-		s1: seconds[0], s2: seconds[1]
+		m1: minutesStr[0], m2: minutesStr[1],
+		s1: secondsStr[0], s2: secondsStr[1]
 	};
 
 	for (const key in newDigits) {
@@ -146,15 +182,19 @@ async function loadSettings() {
 	});
 }
 
-function saveSettings() {
-	try {
-		if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-			chrome.storage.sync.set(settings);
-		} else {
-			localStorage.setItem('mero_settings', JSON.stringify(settings));
+function saveSettings(immediate = false) {
+	if (immediate) {
+		try {
+			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+				chrome.storage.sync.set(settings);
+			} else {
+				localStorage.setItem('mero_settings', JSON.stringify(settings));
+			}
+		} catch (e) {
+			console.error('Mero Tab: Failed to save settings', e);
 		}
-	} catch (e) {
-		console.error('Mero Tab: Failed to save settings', e);
+	} else {
+		debouncedSave();
 	}
 	applySettings();
 }
@@ -163,16 +203,18 @@ function applySettings() {
 	const root = document.documentElement;
 	if (!root) return;
 
-	if (settings.theme === 'dark') {
-		settings.bg = '#1f1f23'; settings.fg = '#ffffff'; settings.accent = '#ffffff';
-	} else if (settings.theme === 'light') {
-		settings.bg = '#ffffff'; settings.fg = '#000000'; settings.accent = '#000000';
-	} else if (settings.theme === 'everforest') {
-		settings.bg = '#2d353b'; settings.fg = '#d3c6aa'; settings.accent = '#a7c080';
-	} else if (settings.theme === 'gruvbox') {
-		settings.bg = '#282828'; settings.fg = '#ebdbb2'; settings.accent = '#fabd2f';
-	} else if (settings.theme === 'dracula') {
-		settings.bg = '#282a36'; settings.fg = '#f8f8f2'; settings.accent = '#bd93f9';
+	if (settings.theme !== 'custom') {
+		if (settings.theme === 'dark') {
+			settings.bg = '#1f1f23'; settings.fg = '#ffffff'; settings.accent = '#ffffff';
+		} else if (settings.theme === 'light') {
+			settings.bg = '#ffffff'; settings.fg = '#000000'; settings.accent = '#000000';
+		} else if (settings.theme === 'everforest') {
+			settings.bg = '#2d353b'; settings.fg = '#d3c6aa'; settings.accent = '#a7c080';
+		} else if (settings.theme === 'gruvbox') {
+			settings.bg = '#282828'; settings.fg = '#ebdbb2'; settings.accent = '#fabd2f';
+		} else if (settings.theme === 'dracula') {
+			settings.bg = '#282a36'; settings.fg = '#f8f8f2'; settings.accent = '#bd93f9';
+		}
 	}
 
 	root.style.setProperty('--bg', settings.bg);
@@ -220,6 +262,7 @@ function applySettings() {
 	if (elements.foldersPerRowInput) elements.foldersPerRowInput.value = settings.foldersPerRow;
 	if (elements.showSecToggle) elements.showSecToggle.checked = settings.showSeconds;
 	if (elements.iconsToggle) elements.iconsToggle.checked = settings.showIcons;
+	if (elements.testModeToggle) elements.testModeToggle.checked = settings.testMode;
 	if (elements.sepMarginInput) elements.sepMarginInput.value = settings.sepMargin;
 	if (elements.secSepMarginInput) elements.secSepMarginInput.value = settings.secSepMargin;
 	if (elements.textAlignSelect) elements.textAlignSelect.value = settings.textAlign;
@@ -239,12 +282,49 @@ function applySettings() {
 
 	if (settings.tabTitle) document.title = settings.tabTitle;
 
-	if (settings.userNameFull && elements.greeting) {
-		elements.greeting.textContent = settings.userNameFull;
+	updateGreeting();
+}
+
+function updateGreeting() {
+	if (!elements.greeting) return;
+	const hours = new Date().getHours();
+	let g = 'Good evening';
+	if (hours < 12) g = 'Good morning';
+	else if (hours < 17) g = 'Good afternoon';
+	elements.greeting.textContent = g;
+}
+
+function getRandomWord() {
+	const words = ['Nebula', 'Zenith', 'Vortex', 'Pulse', 'Echo', 'Lumina', 'Stellar', 'Aventis', 'Cyber', 'Flux', 'Nova', 'Titan', 'Apex', 'Ethereal', 'Prism', 'Oracle', 'Synergy', 'Catalyst', 'Nexus', 'Aura'];
+	return words[Math.floor(Math.random() * words.length)];
+}
+
+function generateTestBookmarks() {
+	const folders = [];
+	for (let i = 0; i < 6; i++) {
+		const folder = {
+			id: `test-folder-${i}`,
+			title: getRandomWord(),
+			children: []
+		};
+		const itemCount = Math.floor(Math.random() * 5) + 4; // 4 to 8
+		for (let j = 0; j < itemCount; j++) {
+			folder.children.push({
+				id: `test-bm-${i}-${j}`,
+				title: getRandomWord(),
+				url: 'https://example.com'
+			});
+		}
+		folders.push(folder);
 	}
+	return { children: folders };
 }
 
 function loadBookmarks() {
+	if (settings.testMode) {
+		renderBookmarks(generateTestBookmarks());
+		return;
+	}
 	if (typeof chrome === 'undefined' || !chrome.bookmarks) {
 		renderDummyBookmarks();
 		return;
@@ -295,7 +375,7 @@ function renderBookmarks(rootNode) {
 
 		const title = document.createElement('div');
 		title.className = 'folder-title';
-		title.textContent = folder.title;
+		title.textContent = settings.testMode ? getRandomWord() : folder.title;
 		group.appendChild(title);
 
 		if (folder.children) {
@@ -309,16 +389,20 @@ function renderBookmarks(rootNode) {
 
 					if (settings.showIcons) {
 						const icon = document.createElement('img');
-						try {
-							icon.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(bm.url)}&size=16`;
-						} catch (e) {
-							icon.src = '';
+						if (settings.testMode) {
+							icon.src = '/icons/internet.png';
+						} else {
+							try {
+								icon.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(bm.url)}&size=16`;
+							} catch (e) {
+								icon.src = '';
+							}
 						}
 						link.appendChild(icon);
 					}
 
 					const text = document.createElement('span');
-					text.textContent = bm.title || bm.url;
+					text.textContent = settings.testMode ? getRandomWord() : (bm.title || bm.url);
 					link.appendChild(text);
 					group.appendChild(link);
 				}
@@ -373,7 +457,7 @@ function reorderFolders(dragged, target) {
 	if (folders.indexOf(dragged) < folders.indexOf(target)) target.after(dragged);
 	else target.before(dragged);
 	settings.folderOrder = Array.from(grid.children).map(f => f.dataset.title).join('\n');
-	saveSettings();
+	saveSettings(true);
 }
 
 function reorderBookmarks(dragged, target) {
@@ -397,7 +481,7 @@ function renderDummyBookmarks() {
 }
 
 function setupEventListeners() {
-	const h = (k, v) => { settings[k] = v; saveSettings(); };
+	const h = (k, v, immediate = false) => { settings[k] = v; saveSettings(immediate); };
 
 	if (elements.settingsToggle) {
 		elements.settingsToggle.onclick = (e) => {
@@ -414,11 +498,11 @@ function setupEventListeners() {
 		}
 	});
 
-	if (elements.themeSelect) elements.themeSelect.onchange = (e) => h('theme', e.target.value);
+	if (elements.themeSelect) elements.themeSelect.onchange = (e) => h('theme', e.target.value, true);
 	if (elements.bgInput) elements.bgInput.oninput = (e) => { settings.theme = 'custom'; h('bg', e.target.value); };
 	if (elements.accentInput) elements.accentInput.oninput = (e) => { settings.theme = 'custom'; h('accent', e.target.value); };
 	if (elements.fgInput) elements.fgInput.oninput = (e) => { settings.theme = 'custom'; h('fg', e.target.value); };
-	if (elements.fontSelect) elements.fontSelect.onchange = (e) => h('font', e.target.value);
+	if (elements.fontSelect) elements.fontSelect.onchange = (e) => h('font', e.target.value, true);
 	if (elements.customFontInput) elements.customFontInput.oninput = (e) => h('fontCustom', e.target.value);
 
 	if (elements.scaleInput) elements.scaleInput.oninput = (e) => {
@@ -451,27 +535,39 @@ function setupEventListeners() {
 		if (elements.valSecSepMargin) elements.valSecSepMargin.textContent = val;
 		h('secSepMargin', val);
 	};
-	if (elements.textAlignSelect) elements.textAlignSelect.onchange = (e) => h('textAlign', e.target.value);
+	if (elements.textAlignSelect) elements.textAlignSelect.onchange = (e) => h('textAlign', e.target.value, true);
 	if (elements.settingsOpacityInput) elements.settingsOpacityInput.oninput = (e) => {
 		const val = parseFloat(e.target.value);
 		if (elements.valSettingsOpacity) elements.valSettingsOpacity.textContent = val.toFixed(2);
 		h('settingsOpacity', val);
 	};
 
-	if (elements.clockFormatSelect) elements.clockFormatSelect.onchange = (e) => { settings.clockFormat = e.target.value; saveSettings(); updateClock(true); };
+	if (elements.clockFormatSelect) elements.clockFormatSelect.onchange = (e) => { settings.clockFormat = e.target.value; saveSettings(true); updateClock(true); };
 
-	if (elements.showSecToggle) elements.showSecToggle.onchange = (e) => h('showSeconds', e.target.checked);
-	if (elements.iconsToggle) elements.iconsToggle.onchange = (e) => { settings.showIcons = e.target.checked; saveSettings(); loadBookmarks(); };
+	if (elements.showSecToggle) elements.showSecToggle.onchange = (e) => h('showSeconds', e.target.checked, true);
+	if (elements.iconsToggle) elements.iconsToggle.onchange = (e) => { settings.showIcons = e.target.checked; saveSettings(true); loadBookmarks(); };
+	if (elements.testModeToggle) elements.testModeToggle.onchange = (e) => { settings.testMode = e.target.checked; saveSettings(true); updateClock(true); loadBookmarks(); };
 
-	if (elements.tabTitleInput) elements.tabTitleInput.oninput = (e) => h('tabTitle', e.target.value);
-
-	if (elements.resetButton) {
-		elements.resetButton.onclick = () => { if (confirm('Reset all settings to default?')) { settings = { ...DEFAULT_SETTINGS }; saveSettings(); loadBookmarks(); } };
+	if (elements.tabTitleInput) {
+		elements.tabTitleInput.onkeydown = (e) => {
+			if (e.key === 'Enter') {
+				h('tabTitle', e.target.value, true);
+				e.target.blur();
+			}
+		};
 	}
 
-	if (elements.greeting) {
-		elements.greeting.oninput = () => { settings.userNameFull = elements.greeting.innerText; saveSettings(); };
+	if (elements.resetButton) {
+		elements.resetButton.onclick = () => { if (confirm('Reset all settings to default?')) { settings = { ...DEFAULT_SETTINGS }; saveSettings(true); loadBookmarks(); } };
 	}
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+if (typeof chrome !== 'undefined' && chrome.storage) {
+	chrome.storage.onChanged.addListener((changes, area) => {
+		if (area === 'sync') {
+			loadSettings().then(applySettings);
+		}
+	});
+}
