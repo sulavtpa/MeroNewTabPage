@@ -23,91 +23,176 @@ const DEFAULT_SETTINGS = {
 	testMode: false
 };
 
+const THEMES = {
+	dark: { bg: '#1f1f23', fg: '#ffffff', accent: '#ffffff' },
+	light: { bg: '#ffffff', fg: '#000000', accent: '#000000' },
+	everforest: { bg: '#2d353b', fg: '#d3c6aa', accent: '#a7c080' },
+	gruvbox: { bg: '#282828', fg: '#ebdbb2', accent: '#fabd2f' },
+	dracula: { bg: '#282a36', fg: '#f8f8f2', accent: '#bd93f9' }
+};
+
 let settings = { ...DEFAULT_SETTINGS };
 let currentDigits = { h1: '', h2: '', m1: '', m2: '', s1: '', s2: '' };
+let draggedElement = null;
+let draggedType = null;
 
-const elements = {
+const query = s => document.querySelector(s);
+const $ = {
 	body: document.body,
-	greeting: document.getElementById('greeting'),
-	date: document.getElementById('date-subtitle'),
-	bookmarksRoot: document.getElementById('bookmarks-root'),
-	settingsToggle: document.getElementById('settings-toggle'),
-	settingsPanel: document.getElementById('settings-panel'),
-	resetButton: document.getElementById('reset-settings'),
-	themeSelect: document.getElementById('setting-theme'),
-	bgInput: document.getElementById('setting-bg'),
-	accentInput: document.getElementById('setting-accent'),
-	fgInput: document.getElementById('setting-fg'),
-	fontSelect: document.getElementById('setting-font'),
-	scaleInput: document.getElementById('setting-scale'),
-	secScaleInput: document.getElementById('setting-sec-scale'),
-	clockOpacityInput: document.getElementById('setting-clock-opacity'),
-	valClockOpacity: document.getElementById('val-clock-opacity'),
-	foldersPerRowInput: document.getElementById('setting-folders-per-row'),
-	showSecToggle: document.getElementById('setting-show-sec'),
-	iconsToggle: document.getElementById('setting-icons'),
-	valScale: document.getElementById('val-scale'),
-	valSecScale: document.getElementById('val-sec-scale'),
-	valFoldersPerRow: document.getElementById('val-folders-per-row'),
-	sepMarginInput: document.getElementById('setting-sep-margin'),
-	valSepMargin: document.getElementById('val-sep-margin'),
-	secSepMarginInput: document.getElementById('setting-sec-sep-margin'),
-	valSecSepMargin: document.getElementById('val-sec-sep-margin'),
-	textAlignSelect: document.getElementById('setting-text-align'),
-	settingsOpacityInput: document.getElementById('setting-settings-opacity'),
-	valSettingsOpacity: document.getElementById('val-settings-opacity'),
-	tabTitleInput: document.getElementById('setting-tab-title'),
-	customFontContainer: document.getElementById('custom-font-container'),
-	customFontInput: document.getElementById('setting-font-custom'),
-	clockFormatSelect: document.getElementById('setting-clock-format'),
-	testModeToggle: document.getElementById('setting-test-mode'),
-	timeContainer: document.getElementById('time-large'),
-	secondsContainer: document.getElementById('seconds-container'),
+	greeting: query('#greeting'),
+	date: query('#date-subtitle'),
+	bookmarksRoot: query('#bookmarks-root'),
+	settingsToggle: query('#settings-toggle'),
+	settingsPanel: query('#settings-panel'),
+	resetButton: query('#reset-settings'),
+	themeSelect: query('#setting-theme'),
+	bgInput: query('#setting-bg'),
+	accentInput: query('#setting-accent'),
+	fgInput: query('#setting-fg'),
+	fontSelect: query('#setting-font'),
+	scaleInput: query('#setting-scale'),
+	secScaleInput: query('#setting-sec-scale'),
+	clockOpacityInput: query('#setting-clock-opacity'),
+	valClockOpacity: query('#val-clock-opacity'),
+	foldersPerRowInput: query('#setting-folders-per-row'),
+	showSecToggle: query('#setting-show-sec'),
+	iconsToggle: query('#setting-icons'),
+	valScale: query('#val-scale'),
+	valSecScale: query('#val-sec-scale'),
+	valFoldersPerRow: query('#val-folders-per-row'),
+	sepMarginInput: query('#setting-sep-margin'),
+	valSepMargin: query('#val-sep-margin'),
+	secSepMarginInput: query('#setting-sec-sep-margin'),
+	valSecSepMargin: query('#val-sec-sep-margin'),
+	textAlignSelect: query('#setting-text-align'),
+	settingsOpacityInput: query('#setting-settings-opacity'),
+	valSettingsOpacity: query('#val-settings-opacity'),
+	tabTitleInput: query('#setting-tab-title'),
+	customFontContainer: query('#custom-font-container'),
+	customFontInput: query('#setting-font-custom'),
+	clockFormatSelect: query('#setting-clock-format'),
+	testModeToggle: query('#setting-test-mode'),
+	timeContainer: query('#time-large'),
+	secondsContainer: query('#seconds-container'),
 	digits: {
-		h1: document.getElementById('hour-1'),
-		h2: document.getElementById('hour-2'),
-		m1: document.getElementById('min-1'),
-		m2: document.getElementById('min-2'),
-		s1: document.getElementById('sec-1'),
-		s2: document.getElementById('sec-2')
+		h1: query('#hour-1'), h2: query('#hour-2'),
+		m1: query('#min-1'), m2: query('#min-2'),
+		s1: query('#sec-1'), s2: query('#sec-2')
 	}
 };
 
-function debounce(func, wait) {
+const debounce = (fn, wait) => {
 	let timeout;
-	return function executedFunction(...args) {
-		const later = () => {
-			clearTimeout(timeout);
-			func(...args);
-		};
+	return (...args) => {
 		clearTimeout(timeout);
-		timeout = setTimeout(later, wait);
+		timeout = setTimeout(() => fn(...args), wait);
 	};
+};
+
+const saveSettings = (immediate = false) => {
+	const save = () => {
+		try {
+			if (globalThis.chrome?.storage?.sync) {
+				chrome.storage.sync.set(settings);
+			} else {
+				localStorage.setItem('mero_settings', JSON.stringify(settings));
+			}
+		} catch (e) {
+			console.error('Mero Tab: Failed to save settings', e);
+		}
+	};
+	immediate ? save() : debouncedSave();
+	applySettings();
+};
+
+const debouncedSave = debounce(saveSettings, 300);
+
+async function loadSettings() {
+	try {
+		if (globalThis.chrome?.storage?.sync) {
+			return new Promise(resolve => {
+				chrome.storage.sync.get(DEFAULT_SETTINGS, items => {
+					settings = { ...DEFAULT_SETTINGS, ...items };
+					resolve();
+				});
+			});
+		}
+		const saved = localStorage.getItem('mero_settings');
+		if (saved) settings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+	} catch (e) {
+		console.warn('Mero Tab: Could not load settings, using defaults', e);
+	}
 }
 
-const debouncedSave = debounce(() => {
-	try {
-		if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-			chrome.storage.sync.set(settings);
-		} else {
-			localStorage.setItem('mero_settings', JSON.stringify(settings));
-		}
-	} catch (e) {
-		console.error('Mero Tab: Failed to save settings', e);
-	}
-}, 300);
+function applySettings() {
+	const root = document.documentElement;
+	if (!root) return;
 
-async function init() {
-	try {
-		await loadSettings();
-		applySettings();
-		updateClock(true);
-		setInterval(updateClock, 1000);
-		loadBookmarks();
-		setupEventListeners();
-	} catch (e) {
-		console.error('Mero Tab: Initialization failed', e);
+	if (settings.theme !== 'custom') {
+		const preset = THEMES[settings.theme];
+		if (preset) Object.assign(settings, preset);
 	}
+
+	const cssVars = {
+		'--bg': settings.bg,
+		'--fg': settings.fg,
+		'--accent': settings.accent,
+		'--font-main': settings.font === 'custom' ? (settings.fontCustom || "'Inter', sans-serif") : settings.font,
+		'--scale': settings.scale ?? 1.0,
+		'--sec-scale': settings.secScale ?? 0.4,
+		'--folders-per-row': settings.foldersPerRow ?? 3,
+		'--sep-margin': (settings.sepMargin ?? 10) + 'px',
+		'--sec-sep-margin': (settings.secSepMargin ?? 5) + 'px',
+		'--text-align': ({ left: 'flex-start', center: 'center', right: 'flex-end' })[settings.textAlign] ?? 'flex-end',
+		'--settings-trigger-opacity': settings.settingsOpacity ?? 0.4,
+		'--clock-opacity': settings.clockOpacity ?? 0.85
+	};
+	Object.entries(cssVars).forEach(([prop, val]) => root.style.setProperty(prop, val));
+
+	if ($.customFontContainer) $.customFontContainer.style.display = settings.font === 'custom' ? 'flex' : 'none';
+
+	if ($.timeContainer) $.timeContainer.style.opacity = settings.clockOpacity ?? 0.85;
+	if ($.secondsContainer) $.secondsContainer.style.display = settings.showSeconds ? 'flex' : 'none';
+
+	const inputs = [
+		[$.themeSelect, 'value', settings.theme],
+		[$.bgInput, 'value', settings.bg],
+		[$.accentInput, 'value', settings.accent],
+		[$.fgInput, 'value', settings.fg],
+		[$.fontSelect, 'value', settings.font],
+		[$.scaleInput, 'value', settings.scale],
+		[$.secScaleInput, 'value', settings.secScale],
+		[$.clockOpacityInput, 'value', settings.clockOpacity],
+		[$.foldersPerRowInput, 'value', settings.foldersPerRow],
+		[$.showSecToggle, 'checked', settings.showSeconds],
+		[$.iconsToggle, 'checked', settings.showIcons],
+		[$.testModeToggle, 'checked', settings.testMode],
+		[$.sepMarginInput, 'value', settings.sepMargin],
+		[$.secSepMarginInput, 'value', settings.secSepMargin],
+		[$.textAlignSelect, 'value', settings.textAlign],
+		[$.settingsOpacityInput, 'value', settings.settingsOpacity],
+		[$.customFontInput, 'value', settings.fontCustom || ''],
+		[$.clockFormatSelect, 'value', settings.clockFormat],
+		[$.tabTitleInput, 'value', settings.tabTitle || 'Mero Tab']
+	];
+	inputs.forEach(([el, prop, val]) => { if (el) el[prop] = val; });
+
+	const displays = [
+		[$.valScale, settings.scale ?? 1.0, 1],
+		[$.valSecScale, settings.secScale ?? 0.4, 2],
+		[$.valClockOpacity, settings.clockOpacity ?? 0.85, 2],
+		[$.valFoldersPerRow, settings.foldersPerRow ?? 3],
+		[$.valSepMargin, settings.sepMargin ?? 10],
+		[$.valSecSepMargin, settings.secSepMargin ?? 5],
+		[$.valSettingsOpacity, settings.settingsOpacity ?? 0.4, 2]
+	];
+	displays.forEach(([el, val, decimals]) => {
+		if (el) el.textContent = decimals !== undefined ? val.toFixed(decimals) : val;
+	});
+
+	document.title = settings.tabTitle || 'Mero Tab';
+
+	updateGreeting();
 }
 
 function updateClock(immediate = false) {
@@ -115,37 +200,32 @@ function updateClock(immediate = false) {
 	let hours, minutes, seconds;
 
 	if (settings.testMode) {
-		hours = 0;
-		minutes = 0;
-		seconds = 0;
+		hours = minutes = seconds = 0;
 	} else {
 		hours = now.getHours();
-		if (settings.clockFormat === '12h') {
-			hours = hours % 12 || 12;
-		}
+		if (settings.clockFormat === '12h') hours = hours % 12 || 12;
 		minutes = now.getMinutes();
 		seconds = now.getSeconds();
 	}
 
-	const hoursStr = String(hours).padStart(2, '0');
-	const minutesStr = String(minutes).padStart(2, '0');
-	const secondsStr = String(seconds).padStart(2, '0');
+	const pad = n => String(n).padStart(2, '0');
+	const [h1, h2] = pad(hours);
+	const [m1, m2] = pad(minutes);
+	const [s1, s2] = pad(seconds);
 
-	const newDigits = {
-		h1: hoursStr[0], h2: hoursStr[1],
-		m1: minutesStr[0], m2: minutesStr[1],
-		s1: secondsStr[0], s2: secondsStr[1]
-	};
+	const newDigits = { h1, h2, m1, m2, s1, s2 };
 
-	for (const key in newDigits) {
+	Object.keys(newDigits).forEach(key => {
 		if (newDigits[key] !== currentDigits[key]) {
-			flipDigit(elements.digits[key], newDigits[key], immediate);
+			flipDigit($.digits[key], newDigits[key], immediate);
 			currentDigits[key] = newDigits[key];
 		}
-	}
+	});
 
-	if (elements.date) {
-		elements.date.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+	if ($.date) {
+		$.date.textContent = now.toLocaleDateString('en-US', {
+			weekday: 'long', month: 'long', day: 'numeric'
+		});
 	}
 }
 
@@ -162,211 +242,71 @@ function flipDigit(el, newValue, immediate) {
 	}, 200);
 }
 
-async function loadSettings() {
-	return new Promise((resolve) => {
-		try {
-			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-				chrome.storage.sync.get(DEFAULT_SETTINGS, (items) => {
-					settings = { ...DEFAULT_SETTINGS, ...items };
-					resolve();
-				});
-			} else {
-				const saved = localStorage.getItem('mero_settings');
-				if (saved) settings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
-				resolve();
-			}
-		} catch (e) {
-			console.warn('Mero Tab: Could not load settings, using defaults', e);
-			resolve();
-		}
-	});
-}
-
-function saveSettings(immediate = false) {
-	if (immediate) {
-		try {
-			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-				chrome.storage.sync.set(settings);
-			} else {
-				localStorage.setItem('mero_settings', JSON.stringify(settings));
-			}
-		} catch (e) {
-			console.error('Mero Tab: Failed to save settings', e);
-		}
-	} else {
-		debouncedSave();
-	}
-	applySettings();
-}
-
-function applySettings() {
-	const root = document.documentElement;
-	if (!root) return;
-
-	if (settings.theme !== 'custom') {
-		if (settings.theme === 'dark') {
-			settings.bg = '#1f1f23'; settings.fg = '#ffffff'; settings.accent = '#ffffff';
-		} else if (settings.theme === 'light') {
-			settings.bg = '#ffffff'; settings.fg = '#000000'; settings.accent = '#000000';
-		} else if (settings.theme === 'everforest') {
-			settings.bg = '#2d353b'; settings.fg = '#d3c6aa'; settings.accent = '#a7c080';
-		} else if (settings.theme === 'gruvbox') {
-			settings.bg = '#282828'; settings.fg = '#ebdbb2'; settings.accent = '#fabd2f';
-		} else if (settings.theme === 'dracula') {
-			settings.bg = '#282a36'; settings.fg = '#f8f8f2'; settings.accent = '#bd93f9';
-		}
-	}
-
-	root.style.setProperty('--bg', settings.bg);
-	root.style.setProperty('--fg', settings.fg);
-	root.style.setProperty('--accent', settings.accent);
-
-	let fontToApply = settings.font;
-	if (settings.font === 'custom') {
-		fontToApply = settings.fontCustom || "'Inter', sans-serif";
-		if (elements.customFontContainer) elements.customFontContainer.style.display = 'flex';
-	} else {
-		if (elements.customFontContainer) elements.customFontContainer.style.display = 'none';
-	}
-	root.style.setProperty('--font-main', fontToApply);
-	root.style.setProperty('--scale', settings.scale ?? 1.0);
-	root.style.setProperty('--sec-scale', settings.secScale ?? 0.4);
-	root.style.setProperty('--folders-per-row', settings.foldersPerRow ?? 3);
-	root.style.setProperty('--sep-margin', (settings.sepMargin ?? 10) + 'px');
-	root.style.setProperty('--sec-sep-margin', (settings.secSepMargin ?? 5) + 'px');
-
-	let flexAlign = 'flex-start';
-	if (settings.textAlign === 'center') flexAlign = 'center';
-	if (settings.textAlign === 'right') flexAlign = 'flex-end';
-	root.style.setProperty('--text-align', flexAlign);
-
-	root.style.setProperty('--settings-trigger-opacity', settings.settingsOpacity ?? 0.4);
-	root.style.setProperty('--clock-opacity', settings.clockOpacity ?? 0.85);
-
-	if (elements.timeContainer) {
-		elements.timeContainer.style.opacity = settings.clockOpacity ?? 0.85;
-	}
-
-	if (elements.secondsContainer) {
-		elements.secondsContainer.style.display = settings.showSeconds ? 'flex' : 'none';
-	}
-
-	if (elements.themeSelect) elements.themeSelect.value = settings.theme;
-	if (elements.bgInput) elements.bgInput.value = settings.bg;
-	if (elements.accentInput) elements.accentInput.value = settings.accent;
-	if (elements.fgInput) elements.fgInput.value = settings.fg;
-	if (elements.fontSelect) elements.fontSelect.value = settings.font;
-	if (elements.scaleInput) elements.scaleInput.value = settings.scale;
-	if (elements.secScaleInput) elements.secScaleInput.value = settings.secScale;
-	if (elements.clockOpacityInput) elements.clockOpacityInput.value = settings.clockOpacity;
-	if (elements.foldersPerRowInput) elements.foldersPerRowInput.value = settings.foldersPerRow;
-	if (elements.showSecToggle) elements.showSecToggle.checked = settings.showSeconds;
-	if (elements.iconsToggle) elements.iconsToggle.checked = settings.showIcons;
-	if (elements.testModeToggle) elements.testModeToggle.checked = settings.testMode;
-	if (elements.sepMarginInput) elements.sepMarginInput.value = settings.sepMargin;
-	if (elements.secSepMarginInput) elements.secSepMarginInput.value = settings.secSepMargin;
-	if (elements.textAlignSelect) elements.textAlignSelect.value = settings.textAlign;
-	if (elements.settingsOpacityInput) elements.settingsOpacityInput.value = settings.settingsOpacity;
-	if (elements.customFontInput) elements.customFontInput.value = settings.fontCustom || '';
-	if (elements.clockFormatSelect) elements.clockFormatSelect.value = settings.clockFormat;
-
-	if (elements.valScale) elements.valScale.textContent = (settings.scale ?? 1.0).toFixed(1);
-	if (elements.valSecScale) elements.valSecScale.textContent = (settings.secScale ?? 0.4).toFixed(2);
-	if (elements.valClockOpacity) elements.valClockOpacity.textContent = (settings.clockOpacity ?? 0.85).toFixed(2);
-	if (elements.valFoldersPerRow) elements.valFoldersPerRow.textContent = settings.foldersPerRow ?? 3;
-	if (elements.valSepMargin) elements.valSepMargin.textContent = settings.sepMargin ?? 10;
-	if (elements.valSecSepMargin) elements.valSecSepMargin.textContent = settings.secSepMargin ?? 5;
-	if (elements.valSettingsOpacity) elements.valSettingsOpacity.textContent = (settings.settingsOpacity ?? 0.4).toFixed(2);
-
-	if (elements.tabTitleInput) elements.tabTitleInput.value = settings.tabTitle || 'Mero Tab';
-
-	if (settings.tabTitle) document.title = settings.tabTitle;
-
-	updateGreeting();
-}
-
 function updateGreeting() {
-	if (!elements.greeting) return;
-	const hours = new Date().getHours();
-	let g = 'Good evening';
-	if (hours < 12) g = 'Good morning';
-	else if (hours < 17) g = 'Good afternoon';
-	elements.greeting.textContent = g;
+	if (!$.greeting) return;
+	const hour = new Date().getHours();
+	const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+	$.greeting.textContent = greeting;
 }
 
-function getRandomWord() {
-	const words = ['Nebula', 'Zenith', 'Vortex', 'Pulse', 'Echo', 'Lumina', 'Stellar', 'Aventis', 'Cyber', 'Flux', 'Nova', 'Titan', 'Apex', 'Ethereal', 'Prism', 'Oracle', 'Synergy', 'Catalyst', 'Nexus', 'Aura'];
-	return words[Math.floor(Math.random() * words.length)];
-}
+const WORD_BANK = ['Nebula', 'Zenith', 'Vortex', 'Pulse', 'Echo', 'Lumina', 'Stellar', 'Aventis', 'Cyber', 'Flux', 'Nova', 'Titan', 'Apex', 'Ethereal', 'Prism', 'Oracle', 'Synergy', 'Catalyst', 'Nexus', 'Aura'];
+
+const randomWord = () => WORD_BANK[Math.random() * WORD_BANK.length | 0];
 
 function generateTestBookmarks() {
-	const folders = [];
-	for (let i = 0; i < 6; i++) {
-		const folder = {
+	return {
+		children: Array.from({ length: 6 }, (_, i) => ({
 			id: `test-folder-${i}`,
-			title: getRandomWord(),
-			children: []
-		};
-		const itemCount = Math.floor(Math.random() * 5) + 4; // 4 to 8
-		for (let j = 0; j < itemCount; j++) {
-			folder.children.push({
+			title: randomWord(),
+			children: Array.from({ length: 4 + (Math.random() * 5 | 0) }, (_, j) => ({
 				id: `test-bm-${i}-${j}`,
-				title: getRandomWord(),
+				title: randomWord(),
 				url: 'https://example.com'
-			});
-		}
-		folders.push(folder);
-	}
-	return { children: folders };
+			}))
+		}))
+	};
 }
 
 function loadBookmarks() {
-	if (settings.testMode) {
-		renderBookmarks(generateTestBookmarks());
-		return;
-	}
-	if (typeof chrome === 'undefined' || !chrome.bookmarks) {
-		renderDummyBookmarks();
-		return;
-	}
+	if (settings.testMode) return renderBookmarks(generateTestBookmarks());
+	if (!globalThis.chrome?.bookmarks) return renderDummyBookmarks();
+
 	try {
-		chrome.bookmarks.getTree((rootNodes) => {
-			if (!rootNodes || !rootNodes[0]) return;
-			const rootNode = rootNodes[0].children.find(c => c.id === '1') || rootNodes[0].children[0];
-			renderBookmarks(rootNode);
+		chrome.bookmarks.getTree(([root]) => {
+			const rootNode = root.children?.find(c => c.id === '1') || root.children?.[0];
+			if (rootNode) renderBookmarks(rootNode);
 		});
-	} catch (e) {
-		console.warn('Mero Tab: Could not load bookmarks', e);
+	} catch {
 		renderDummyBookmarks();
 	}
 }
 
 function renderBookmarks(rootNode) {
-	if (!elements.bookmarksRoot) return;
-	elements.bookmarksRoot.innerHTML = '';
+	if (!$.bookmarksRoot) return;
+	$.bookmarksRoot.innerHTML = '';
+
 	const grid = document.createElement('div');
 	grid.className = 'bookmarks-grid';
 
 	const folderMap = new Map();
 	let topItems = [];
 
-	if (rootNode.children) {
-		rootNode.children.forEach(child => {
-			if (child.children) folderMap.set(child.title.toLowerCase().trim(), child);
-			else topItems.push(child);
-		});
-	}
-
-	if (topItems.length > 0) folderMap.set('bookmarks', { title: 'Bookmarks', children: topItems, id: 'virtual-root' });
-
-	const customOrder = (settings.folderOrder || '').split('\n').map(s => s.trim().toLowerCase()).filter(s => s);
-	let finalFolders = [];
-	customOrder.forEach(title => {
-		if (folderMap.has(title)) { finalFolders.push(folderMap.get(title)); folderMap.delete(title); }
+	rootNode.children?.forEach(child => {
+		(child.children ? folderMap : topItems).set?.(
+			child.title?.toLowerCase().trim(), child
+		) || topItems.push(child);
 	});
-	folderMap.forEach(folder => finalFolders.push(folder));
+	if (topItems.length) folderMap.set('bookmarks', { title: 'Bookmarks', children: topItems, id: 'virtual-root' });
 
-	finalFolders.forEach(folder => {
+	const customOrder = (settings.folderOrder || '').split('\n').map(s => s.trim().toLowerCase()).filter(Boolean);
+	const ordered = [];
+	customOrder.forEach(title => {
+		if (folderMap.has(title)) ordered.push(folderMap.get(title));
+		folderMap.delete(title);
+	});
+	folderMap.forEach(v => ordered.push(v));
+
+	ordered.forEach(folder => {
 		const group = document.createElement('div');
 		group.className = 'folder-group';
 		group.draggable = true;
@@ -375,199 +315,192 @@ function renderBookmarks(rootNode) {
 
 		const title = document.createElement('div');
 		title.className = 'folder-title';
-		title.textContent = settings.testMode ? getRandomWord() : folder.title;
+		title.textContent = settings.testMode ? randomWord() : folder.title;
 		group.appendChild(title);
 
-		if (folder.children) {
-			folder.children.forEach(bm => {
-				if (bm.url) {
-					const link = document.createElement('a');
-					link.className = 'bookmark-item';
-					link.href = bm.url;
-					link.draggable = true;
-					link.dataset.id = bm.id;
+		folder.children?.forEach(bm => {
+			if (!bm.url) return;
+			const link = document.createElement('a');
+			link.className = 'bookmark-item';
+			link.href = bm.url;
+			link.draggable = true;
+			link.dataset.id = bm.id;
 
-					if (settings.showIcons) {
-						const icon = document.createElement('img');
-						if (settings.testMode) {
-							icon.src = '/icons/internet.png';
-						} else {
-							try {
-								icon.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(bm.url)}&size=16`;
-							} catch (e) {
-								icon.src = '';
-							}
-						}
-						link.appendChild(icon);
-					}
+			if (settings.showIcons) {
+				const icon = document.createElement('img');
+				if (settings.testMode) {
+					icon.src = '/icons/internet.png';
+				} else try {
+					icon.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(bm.url)}&size=16`;
+				} catch { }
+				link.appendChild(icon);
+			}
 
-					const text = document.createElement('span');
-					text.textContent = settings.testMode ? getRandomWord() : (bm.title || bm.url);
-					link.appendChild(text);
-					group.appendChild(link);
-				}
-			});
-		}
+			const text = document.createElement('span');
+			text.textContent = settings.testMode ? randomWord() : (bm.title || bm.url);
+			link.appendChild(text);
+			group.appendChild(link);
+		});
+
 		setupDragEvents(group, 'folder');
 		group.querySelectorAll('.bookmark-item').forEach(item => setupDragEvents(item, 'bookmark'));
 		grid.appendChild(group);
 	});
-	elements.bookmarksRoot.appendChild(grid);
+
+	$.bookmarksRoot.appendChild(grid);
 }
 
-let draggedElement = null;
-let draggedType = null;
+function renderDummyBookmarks() {
+	if ($.bookmarksRoot) {
+		$.bookmarksRoot.innerHTML = '<div class="bookmarks-grid"><div class="folder-group"><div class="folder-title">Sample</div><a class="bookmark-item" href="https://google.com">Google</a></div></div>';
+	}
+}
 
 function setupDragEvents(el, type) {
 	if (!el) return;
-	el.addEventListener('dragstart', (e) => {
-		draggedElement = el; draggedType = type;
+	el.addEventListener('dragstart', e => {
+		draggedElement = el;
+		draggedType = type;
 		el.classList.add('dragging');
+		e.dataTransfer.setDragImage(new Image(0, 0), 0, 0);
 		e.stopPropagation();
-		const img = new Image();
-		img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-		e.dataTransfer.setDragImage(img, 0, 0);
 	});
 	el.addEventListener('dragend', () => {
 		el.classList.remove('dragging');
 		document.querySelectorAll('.drag-over').forEach(d => d.classList.remove('drag-over'));
 		draggedElement = null;
 	});
-	el.addEventListener('dragover', (e) => {
+	el.addEventListener('dragover', e => {
 		if (draggedType !== type) return;
-		e.preventDefault(); e.stopPropagation();
+		e.preventDefault();
 		el.classList.add('drag-over');
 	});
-	el.addEventListener('dragleave', (e) => {
-		el.classList.remove('drag-over');
-	});
-	el.addEventListener('drop', (e) => {
-		e.preventDefault(); e.stopPropagation();
+	el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+	el.addEventListener('drop', e => {
+		e.preventDefault();
 		el.classList.remove('drag-over');
 		if (draggedType !== type || draggedElement === el) return;
-		if (type === 'folder') reorderFolders(draggedElement, el);
-		else reorderBookmarks(draggedElement, el);
+		type === 'folder' ? reorderFolders(draggedElement, el) : reorderBookmarks(draggedElement, el);
 	});
 }
 
 function reorderFolders(dragged, target) {
 	const grid = dragged.parentNode;
 	if (!grid) return;
-	const folders = Array.from(grid.children);
-	if (folders.indexOf(dragged) < folders.indexOf(target)) target.after(dragged);
-	else target.before(dragged);
-	settings.folderOrder = Array.from(grid.children).map(f => f.dataset.title).join('\n');
+	const folders = [...grid.children];
+	if (folders.indexOf(dragged) < folders.indexOf(target)) {
+		target.after(dragged);
+	} else {
+		target.before(dragged);
+	}
+	settings.folderOrder = [...grid.children].map(f => f.dataset.title).join('\n');
 	saveSettings(true);
 }
 
 function reorderBookmarks(dragged, target) {
-	if (dragged.nextSibling === target) target.after(dragged);
-	else target.before(dragged);
-	if (typeof chrome !== 'undefined' && chrome.bookmarks) {
-		try {
-			chrome.bookmarks.get(target.dataset.id, (nodes) => {
-				if (nodes && nodes[0]) {
-					chrome.bookmarks.move(dragged.dataset.id, { parentId: nodes[0].parentId, index: nodes[0].index }, () => loadBookmarks());
-				}
-			});
-		} catch (e) { }
-	}
-}
-
-function renderDummyBookmarks() {
-	if (elements.bookmarksRoot) {
-		elements.bookmarksRoot.innerHTML = '<div class="bookmarks-grid"><div class="folder-group"><div class="folder-title">Sample</div><a class="bookmark-item" href="https://google.com">Google</a></div></div>';
-	}
+	(dragged.nextSibling === target) ? target.after(dragged) : target.before(dragged);
+	if (!globalThis.chrome?.bookmarks) return;
+	try {
+		chrome.bookmarks.get(target.dataset.id, ([node]) => {
+			if (node) chrome.bookmarks.move(dragged.dataset.id, { parentId: node.parentId, index: node.index }, loadBookmarks);
+		});
+	} catch { }
 }
 
 function setupEventListeners() {
-	const h = (k, v, immediate = false) => { settings[k] = v; saveSettings(immediate); };
+	const set = (key, val, immediate = false) => { settings[key] = val; saveSettings(immediate); };
 
-	if (elements.settingsToggle) {
-		elements.settingsToggle.onclick = (e) => {
-			e.stopPropagation();
-			elements.settingsPanel && elements.settingsPanel.classList.toggle('open');
-		};
-	}
+	$.settingsToggle?.addEventListener('click', e => {
+		e.stopPropagation();
+		$.settingsPanel?.classList.toggle('open');
+	});
 
-	document.addEventListener('click', (e) => {
-		if (elements.settingsPanel && elements.settingsPanel.classList.contains('open')) {
-			if (!elements.settingsPanel.contains(e.target) && e.target !== elements.settingsToggle) {
-				elements.settingsPanel.classList.remove('open');
-			}
+	document.addEventListener('click', e => {
+		if ($.settingsPanel?.classList.contains('open') &&
+			!$.settingsPanel.contains(e.target) && e.target !== $.settingsToggle) {
+			$.settingsPanel.classList.remove('open');
 		}
 	});
 
-	if (elements.themeSelect) elements.themeSelect.onchange = (e) => h('theme', e.target.value, true);
-	if (elements.bgInput) elements.bgInput.oninput = (e) => { settings.theme = 'custom'; h('bg', e.target.value); };
-	if (elements.accentInput) elements.accentInput.oninput = (e) => { settings.theme = 'custom'; h('accent', e.target.value); };
-	if (elements.fgInput) elements.fgInput.oninput = (e) => { settings.theme = 'custom'; h('fg', e.target.value); };
-	if (elements.fontSelect) elements.fontSelect.onchange = (e) => h('font', e.target.value, true);
-	if (elements.customFontInput) elements.customFontInput.oninput = (e) => h('fontCustom', e.target.value);
+	$.themeSelect?.addEventListener('change', e => set('theme', e.target.value, true));
 
-	if (elements.scaleInput) elements.scaleInput.oninput = (e) => {
-		const val = parseFloat(e.target.value);
-		if (elements.valScale) elements.valScale.textContent = val.toFixed(1);
-		h('scale', val);
-	};
-	if (elements.secScaleInput) elements.secScaleInput.oninput = (e) => {
-		const val = parseFloat(e.target.value);
-		if (elements.valSecScale) elements.valSecScale.textContent = val.toFixed(2);
-		h('secScale', val);
-	};
-	if (elements.clockOpacityInput) elements.clockOpacityInput.oninput = (e) => {
-		const val = parseFloat(e.target.value);
-		if (elements.valClockOpacity) elements.valClockOpacity.textContent = val.toFixed(2);
-		h('clockOpacity', val);
-	};
-	if (elements.foldersPerRowInput) elements.foldersPerRowInput.oninput = (e) => {
-		const val = parseInt(e.target.value);
-		if (elements.valFoldersPerRow) elements.valFoldersPerRow.textContent = val;
-		h('foldersPerRow', val);
-	};
-	if (elements.sepMarginInput) elements.sepMarginInput.oninput = (e) => {
-		const val = parseInt(e.target.value);
-		if (elements.valSepMargin) elements.valSepMargin.textContent = val;
-		h('sepMargin', val);
-	};
-	if (elements.secSepMarginInput) elements.secSepMarginInput.oninput = (e) => {
-		const val = parseInt(e.target.value);
-		if (elements.valSecSepMargin) elements.valSecSepMargin.textContent = val;
-		h('secSepMargin', val);
-	};
-	if (elements.textAlignSelect) elements.textAlignSelect.onchange = (e) => h('textAlign', e.target.value, true);
-	if (elements.settingsOpacityInput) elements.settingsOpacityInput.oninput = (e) => {
-		const val = parseFloat(e.target.value);
-		if (elements.valSettingsOpacity) elements.valSettingsOpacity.textContent = val.toFixed(2);
-		h('settingsOpacity', val);
-	};
+	[$.bgInput, $.accentInput, $.fgInput].forEach(input => {
+		input?.addEventListener('input', e => {
+			set('theme', 'custom');
+			set(input.id.replace('setting-', ''), e.target.value);
+		});
+	});
 
-	if (elements.clockFormatSelect) elements.clockFormatSelect.onchange = (e) => { settings.clockFormat = e.target.value; saveSettings(true); updateClock(true); };
+	$.fontSelect?.addEventListener('change', e => set('font', e.target.value, true));
+	$.customFontInput?.addEventListener('input', e => set('fontCustom', e.target.value));
 
-	if (elements.showSecToggle) elements.showSecToggle.onchange = (e) => h('showSeconds', e.target.checked, true);
-	if (elements.iconsToggle) elements.iconsToggle.onchange = (e) => { settings.showIcons = e.target.checked; saveSettings(true); loadBookmarks(); };
-	if (elements.testModeToggle) elements.testModeToggle.onchange = (e) => { settings.testMode = e.target.checked; saveSettings(true); updateClock(true); loadBookmarks(); };
+	const rangeInputs = [
+		{ el: $.scaleInput, key: 'scale', display: $.valScale, decimals: 1 },
+		{ el: $.secScaleInput, key: 'secScale', display: $.valSecScale, decimals: 2 },
+		{ el: $.clockOpacityInput, key: 'clockOpacity', display: $.valClockOpacity, decimals: 2 },
+		{ el: $.foldersPerRowInput, key: 'foldersPerRow', display: $.valFoldersPerRow },
+		{ el: $.sepMarginInput, key: 'sepMargin', display: $.valSepMargin },
+		{ el: $.secSepMarginInput, key: 'secSepMargin', display: $.valSecSepMargin },
+		{ el: $.settingsOpacityInput, key: 'settingsOpacity', display: $.valSettingsOpacity, decimals: 2 }
+	];
+	rangeInputs.forEach(({ el, key, display, decimals }) => {
+		el?.addEventListener('input', e => {
+			const val = e.target.value.includes('.') ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
+			if (display) display.textContent = decimals !== undefined ? val.toFixed(decimals) : val;
+			set(key, val);
+		});
+	});
 
-	if (elements.tabTitleInput) {
-		elements.tabTitleInput.onkeydown = (e) => {
-			if (e.key === 'Enter') {
-				h('tabTitle', e.target.value, true);
-				e.target.blur();
-			}
-		};
-	}
+	$.textAlignSelect?.addEventListener('change', e => set('textAlign', e.target.value, true));
 
-	if (elements.resetButton) {
-		elements.resetButton.onclick = () => { if (confirm('Reset all settings to default?')) { settings = { ...DEFAULT_SETTINGS }; saveSettings(true); loadBookmarks(); } };
-	}
+	$.clockFormatSelect?.addEventListener('change', e => {
+		settings.clockFormat = e.target.value;
+		saveSettings(true);
+		updateClock(true);
+	});
+
+	$.showSecToggle?.addEventListener('change', e => set('showSeconds', e.target.checked, true));
+	$.iconsToggle?.addEventListener('change', e => {
+		settings.showIcons = e.target.checked;
+		saveSettings(true);
+		loadBookmarks();
+	});
+	$.testModeToggle?.addEventListener('change', e => {
+		settings.testMode = e.target.checked;
+		saveSettings(true);
+		updateClock(true);
+		loadBookmarks();
+	});
+
+	$.tabTitleInput?.addEventListener('keydown', e => {
+		if (e.key === 'Enter') {
+			set('tabTitle', e.target.value, true);
+			e.target.blur();
+		}
+	});
+
+	$.resetButton?.addEventListener('click', () => {
+		if (confirm('Reset all settings to default?')) {
+			settings = { ...DEFAULT_SETTINGS };
+			saveSettings(true);
+			loadBookmarks();
+		}
+	});
+}
+
+async function init() {
+	await loadSettings();
+	applySettings();
+	updateClock(true);
+	setInterval(updateClock, 1000);
+	loadBookmarks();
+	setupEventListeners();
 }
 
 document.addEventListener('DOMContentLoaded', init);
 
-if (typeof chrome !== 'undefined' && chrome.storage) {
+if (globalThis.chrome?.storage) {
 	chrome.storage.onChanged.addListener((changes, area) => {
-		if (area === 'sync') {
-			loadSettings().then(applySettings);
-		}
+		if (area === 'sync') loadSettings().then(applySettings);
 	});
 }
