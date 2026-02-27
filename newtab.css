@@ -287,6 +287,28 @@ main {
 	color: var(--accent);
 }
 
+body.focus-mode-active .bookmark-item.strike-through,
+body.edit-focus-mode .bookmark-item.strike-through {
+	text-decoration: line-through;
+	opacity: 0.3 !important;
+	filter: grayscale(100%);
+}
+
+body.focus-mode-active .bookmark-item.strike-through {
+	cursor: not-allowed !important;
+}
+
+body.edit-focus-mode .bookmark-item {
+	cursor: cell !important;
+}
+
+body.edit-focus-mode .bookmark-item:hover {
+	outline: 1px dashed var(--accent);
+	outline-offset: 4px;
+	border-radius: 4px;
+	opacity: 1 !important;
+}
+
 .bookmark-item img {
 	width: 14px;
 	height: 14px;
@@ -450,6 +472,10 @@ input[type="color"]::-webkit-color-swatch {
 
 #setting-test-mode:checked {
 	background: #ff6b6b;
+}
+
+#setting-focus-mode:checked {
+	background: #4ad964;
 }
 
 .setting-item input[type="checkbox"]::after {

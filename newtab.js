@@ -20,7 +20,10 @@ const DEFAULT_SETTINGS = {
 	clockOpacity: 0.85,
 	fontCustom: '',
 	clockFormat: '24h',
-	testMode: false
+	testMode: false,
+	focusMode: false,
+	editFocusMode: false,
+	disabledBookmarks: []
 };
 
 const THEMES = {
@@ -75,6 +78,8 @@ const $ = {
 	customFontInput: query('#setting-font-custom'),
 	clockFormatSelect: query('#setting-clock-format'),
 	testModeToggle: query('#setting-test-mode'),
+	focusModeToggle: query('#setting-focus-mode'),
+	editFocusModeToggle: query('#setting-edit-focus-mode'),
 	timeContainer: query('#time-large'),
 	secondsContainer: query('#seconds-container'),
 	digits: {
@@ -157,6 +162,9 @@ function applySettings() {
 	if ($.timeContainer) $.timeContainer.style.opacity = settings.clockOpacity ?? 0.85;
 	if ($.secondsContainer) $.secondsContainer.style.display = settings.showSeconds ? 'flex' : 'none';
 
+	document.body.classList.toggle('focus-mode-active', settings.focusMode && !settings.editFocusMode);
+	document.body.classList.toggle('edit-focus-mode', settings.editFocusMode);
+
 	const inputs = [
 		[$.themeSelect, 'value', settings.theme],
 		[$.bgInput, 'value', settings.bg],
@@ -170,6 +178,8 @@ function applySettings() {
 		[$.showSecToggle, 'checked', settings.showSeconds],
 		[$.iconsToggle, 'checked', settings.showIcons],
 		[$.testModeToggle, 'checked', settings.testMode],
+		[$.focusModeToggle, 'checked', settings.focusMode],
+		[$.editFocusModeToggle, 'checked', settings.editFocusMode],
 		[$.sepMarginInput, 'value', settings.sepMargin],
 		[$.secSepMarginInput, 'value', settings.secSepMargin],
 		[$.textAlignSelect, 'value', settings.textAlign],
@@ -329,6 +339,28 @@ function renderBookmarks(rootNode) {
 			link.draggable = true;
 			link.dataset.id = bm.id;
 
+			if (settings.disabledBookmarks?.includes(bm.id)) {
+				link.classList.add('strike-through');
+			}
+
+			link.addEventListener('click', e => {
+				if (settings.editFocusMode) {
+					e.preventDefault();
+					settings.disabledBookmarks = settings.disabledBookmarks || [];
+					const idx = settings.disabledBookmarks.indexOf(bm.id);
+					if (idx > -1) {
+						settings.disabledBookmarks.splice(idx, 1);
+						link.classList.remove('strike-through');
+					} else {
+						settings.disabledBookmarks.push(bm.id);
+						link.classList.add('strike-through');
+					}
+					saveSettings(true);
+				} else if (settings.focusMode && settings.disabledBookmarks?.includes(bm.id)) {
+					e.preventDefault();
+				}
+			});
+
 			if (settings.showIcons) {
 				const icon = document.createElement('img');
 				if (settings.testMode) {
@@ -473,6 +505,22 @@ function setupEventListeners() {
 		saveSettings(true);
 		updateClock(true);
 		loadBookmarks();
+	});
+
+	$.focusModeToggle?.addEventListener('change', e => {
+		set('focusMode', e.target.checked, true);
+		if (e.target.checked && settings.editFocusMode) {
+			set('editFocusMode', false, true);
+		}
+		applySettings();
+	});
+
+	$.editFocusModeToggle?.addEventListener('change', e => {
+		set('editFocusMode', e.target.checked, true);
+		if (e.target.checked && settings.focusMode) {
+			set('focusMode', false, true);
+		}
+		applySettings();
 	});
 
 	$.tabTitleInput?.addEventListener('keydown', e => {
