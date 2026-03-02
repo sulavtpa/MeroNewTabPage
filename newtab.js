@@ -286,7 +286,10 @@ function loadBookmarks() {
 
 	try {
 		chrome.bookmarks.getTree(([root]) => {
-			const rootNode = root.children?.find(c => c.id === '1') || root.children?.[0];
+			let rootNode = root.children?.find(c => c.id === '1');
+			if (!rootNode || !rootNode.children || rootNode.children.length === 0) {
+				rootNode = root.children?.find(c => c.children && c.children.length > 0) || root.children?.[0];
+			}
 			if (rootNode) renderBookmarks(rootNode);
 		});
 	} catch {
@@ -366,7 +369,10 @@ function renderBookmarks(rootNode) {
 				if (settings.testMode) {
 					icon.src = '/icons/internet.png';
 				} else try {
-					icon.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(bm.url)}&size=16`;
+					const faviconUrl = new URL(chrome.runtime.getURL('/_favicon/'));
+					faviconUrl.searchParams.set('pageUrl', bm.url);
+					faviconUrl.searchParams.set('size', '32');
+					icon.src = faviconUrl.toString();
 				} catch { }
 				link.appendChild(icon);
 			}
