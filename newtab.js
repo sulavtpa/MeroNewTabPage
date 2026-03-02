@@ -100,10 +100,11 @@ const debounce = (fn, wait) => {
 const saveSettings = (immediate = false) => {
 	const save = () => {
 		try {
+			// Always save to localStorage for fast initial theme application
+			localStorage.setItem('mero_settings', JSON.stringify(settings));
+
 			if (globalThis.chrome?.storage?.sync) {
 				chrome.storage.sync.set(settings);
-			} else {
-				localStorage.setItem('mero_settings', JSON.stringify(settings));
 			}
 		} catch (e) {
 			console.error('Mero Tab: Failed to save settings', e);
