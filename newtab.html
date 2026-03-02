@@ -7,11 +7,14 @@
 	<title>Mero Tab</title>
 	<style>
 		/* Dark default background to prevent white flash */
-		html, body { background-color: #1f1f23; }
+		html,
+		body {
+			background-color: #1f1f23;
+		}
 	</style>
 	<script>
 		// Apply theme color immediately to prevent flash
-		(function() {
+		(function () {
 			try {
 				const saved = localStorage.getItem('mero_settings');
 				if (saved) {
@@ -19,15 +22,15 @@
 					let bg = settings.bg;
 					if (settings.theme && settings.theme !== 'custom') {
 						const themes = {
-							dark: '#1f1f23', light: '#ffffff', everforest: '#2d353b', 
-							gruvbox: '#282828', dracula: '#282a36', peach: '#FCF8F8', 
+							dark: '#1f1f23', light: '#ffffff', everforest: '#2d353b',
+							gruvbox: '#282828', dracula: '#282a36', peach: '#FCF8F8',
 							sea: '#09637E', black: '#000000'
 						};
 						if (themes[settings.theme]) bg = themes[settings.theme];
 					}
 					if (bg) document.documentElement.style.setProperty('--bg', bg);
 				}
-			} catch (e) {}
+			} catch (e) { }
 		})();
 	</script>
 	<link rel="stylesheet" href="newtab.css">
@@ -43,7 +46,7 @@
 		<main>
 			<section class="info-section">
 				<div class="greeting-container">
-					<h1 id="greeting">Good evening</h1>
+					<h1 id="greeting">Good Evening</h1>
 					<div id="time-large" class="time-container">
 						<span class="digit" id="hour-1">0</span>
 						<span class="digit" id="hour-2">0</span>

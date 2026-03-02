@@ -259,7 +259,7 @@ function flipDigit(el, newValue, immediate) {
 function updateGreeting() {
 	if (!$.greeting) return;
 	const hour = new Date().getHours();
-	const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+	const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
 	$.greeting.textContent = greeting;
 }
 
