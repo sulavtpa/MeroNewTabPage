@@ -6,14 +6,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Mero Tab</title>
 	<style>
-		/* Dark default background to prevent white flash */
 		html,
 		body {
 			background-color: #1f1f23;
 		}
 	</style>
 	<script>
-		// Apply theme color immediately to prevent flash
 		(function () {
 			try {
 				const saved = localStorage.getItem('mero_settings');
@@ -62,173 +60,196 @@
 					<p id="date-subtitle">Tuesday, February 17</p>
 				</div>
 			</section>
-
 			<section class="bookmarks-section" id="bookmarks-root"></section>
 		</main>
 
 		<div id="settings-toggle" class="settings-trigger-container" title="Settings">
+			<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+				stroke-linecap="round" stroke-linejoin="round">
+				<circle cx="12" cy="12" r="3"></circle>
+				<path
+					d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+				</path>
+			</svg>
 			<span class="settings-label">Settings</span>
 		</div>
 
 		<div id="settings-panel" class="settings-panel">
-			<div class="settings-header">
-				<h2>Customization</h2>
+			<div class="settings-sidebar">
+				<div class="sidebar-item active" data-tab="appearance">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+					</svg>
+					<span>Appearance</span>
+				</div>
+				<div class="sidebar-item" data-tab="clock">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="12" cy="12" r="10" />
+						<polyline points="12 6 12 12 16 14" />
+					</svg>
+					<span>Clock & Date</span>
+				</div>
+				<div class="sidebar-item" data-tab="layout">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+						<rect x="3" y="3" width="18" height="18" rx="2" />
+						<line x1="9" y1="3" x2="9" y2="21" />
+					</svg>
+					<span>Layout</span>
+				</div>
+				<div class="sidebar-item" data-tab="focus">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+					</svg>
+					<span>Focus</span>
+				</div>
+				<div class="sidebar-item" data-tab="advanced">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="12" cy="12" r="3" />
+						<path
+							d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+					</svg>
+					<span>Advanced</span>
+				</div>
 			</div>
-			<div class="settings-content">
-				<div class="settings-group">
-					<h3>Appearance</h3>
-					<div class="setting-item">
-						<label>Theme</label>
-						<select id="setting-theme">
-							<option value="dark">Simple Dark</option>
-							<option value="light">Simple Light</option>
-							<option value="everforest">Everforest Dark</option>
-							<option value="gruvbox">Gruvbox Dark</option>
-							<option value="dracula">Dracula</option>
-							<option value="peach">Creamy Peach</option>
-							<option value="sea">Calm Sea</option>
-							<option value="black">Pure Black</option>
-							<option value="custom">Custom</option>
-						</select>
-					</div>
-					<div class="setting-item">
-						<label>Background</label>
-						<input type="color" id="setting-bg" value="#000000">
-					</div>
-					<div class="setting-item">
-						<label>Accent</label>
-						<input type="color" id="setting-accent" value="#ffffff">
-					</div>
-					<div class="setting-item">
-						<label>Text</label>
-						<input type="color" id="setting-fg" value="#ffffff">
-					</div>
-				</div>
 
-				<div class="settings-group">
-					<h3>Typography</h3>
-					<div class="setting-item">
-						<label>Font Family</label>
-						<select id="setting-font">
-							<option value="'Inter', sans-serif">Inter</option>
-							<option value="'Outfit', sans-serif">Outfit</option>
-							<option value="'Poppins', sans-serif">Poppins</option>
-							<option value="'Noto Sans', sans-serif">Noto Sans</option>
-							<option value="'Space Mono', monospace">Space Mono</option>
-							<option value="'JetBrains Mono', monospace">JetBrains Mono</option>
-							<option value="'Montserrat', sans-serif">Montserrat</option>
-							<option value="'Playfair Display', serif">Playfair Display</option>
-							<option value="'Pacifico', cursive">Pacifico (Cursive)</option>
-							<option value="'Caveat', cursive">Caveat</option>
-							<option value="serif">System Serif</option>
-							<option value="monospace">System Monospace</option>
-							<option value="custom">Custom Font...</option>
-						</select>
+			<div class="settings-main">
+				<div class="tab-content active" id="tab-appearance">
+					<div class="settings-group">
+						<h3>Colors & Theme</h3>
+						<div class="setting-item"><label>Theme</label><select id="setting-theme">
+								<option value="dark">Simple Dark</option>
+								<option value="light">Simple Light</option>
+								<option value="everforest">Everforest Dark</option>
+								<option value="gruvbox">Gruvbox Dark</option>
+								<option value="dracula">Dracula</option>
+								<option value="peach">Creamy Peach</option>
+								<option value="sea">Calm Sea</option>
+								<option value="black">Pure Black</option>
+								<option value="custom">Custom</option>
+							</select></div>
+						<div class="setting-item"><label>Background</label><input type="color" id="setting-bg"
+								value="#000000"></div>
+						<div class="setting-item"><label>Accent</label><input type="color" id="setting-accent"
+								value="#ffffff"></div>
+						<div class="setting-item"><label>Foreground</label><input type="color" id="setting-fg"
+								value="#ffffff"></div>
 					</div>
-					<div class="setting-item" id="custom-font-container" style="display: none;">
-						<label>Custom Font</label>
-						<input type="text" id="setting-font-custom" placeholder="e.g. 'Comic Sans MS'">
-					</div>
-					<div class="setting-item">
-						<label>Global Scale</label>
-						<div class="range-container">
-							<input type="range" id="setting-scale" min="0.8" max="1.5" step="0.1" value="1.0">
-							<span class="range-value" id="val-scale">1.0</span>
-						</div>
-					</div>
-					<div class="setting-item">
-						<label>Seconds Size</label>
-						<div class="range-container">
-							<input type="range" id="setting-sec-scale" min="0.2" max="1.0" step="0.05" value="0.4">
-							<span class="range-value" id="val-sec-scale">0.4</span>
-						</div>
-					</div>
-					<div class="setting-item">
-						<label>Clock Opacity</label>
-						<div class="range-container">
-							<input type="range" id="setting-clock-opacity" min="0" max="1" step="0.05" value="0.85">
-							<span class="range-value" id="val-clock-opacity">0.85</span>
-						</div>
-					</div>
-					<div class="setting-item">
-						<label>Max Folders per Row</label>
-						<div class="range-container">
-							<input type="range" id="setting-folders-per-row" min="1" max="6" step="1" value="3">
-							<span class="range-value" id="val-folders-per-row">3</span>
+					<div class="settings-group">
+						<h3>Typography</h3>
+						<div class="setting-item"><label>Font Family</label><select id="setting-font">
+								<option value="'Inter', sans-serif">Inter</option>
+								<option value="'Outfit', sans-serif">Outfit</option>
+								<option value="'Poppins', sans-serif">Poppins</option>
+								<option value="'Noto Sans', sans-serif">Noto Sans</option>
+								<option value="'Space Mono', monospace">Space Mono</option>
+								<option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+								<option value="'Montserrat', sans-serif">Montserrat</option>
+								<option value="'Playfair Display', serif">Playfair Display</option>
+								<option value="'Pacifico', cursive">Pacifico</option>
+								<option value="'Caveat', cursive">Caveat</option>
+								<option value="custom">Custom Font...</option>
+							</select></div>
+						<div class="setting-item" id="custom-font-container" style="display: none;"><label>Font
+								Name</label><input type="text" id="setting-font-custom"
+								placeholder="e.g. 'Comic Sans MS'"></div>
+						<div class="setting-item"><label>Global Scale</label>
+							<div class="range-container"><input type="range" id="setting-scale" min="0.8" max="1.5"
+									step="0.1" value="1.0"><span class="range-value" id="val-scale">1.0</span></div>
 						</div>
 					</div>
 				</div>
 
-				<div class="settings-group">
-					<h3>Focus Mode</h3>
-					<div class="setting-item">
-						<label>Enable Focus Mode</label>
-						<input type="checkbox" id="setting-focus-mode">
+				<div class="tab-content" id="tab-clock">
+					<div class="settings-group">
+						<h3>Time Display</h3>
+						<div class="setting-item"><label>Clock Format</label><select id="setting-clock-format">
+								<option value="24h">24 Hour</option>
+								<option value="12h">12 Hour</option>
+							</select></div>
+						<div class="setting-item"><label>Digit Animation</label><select id="setting-clock-animation">
+								<option value="flip">Flip</option>
+								<option value="fade">Fade</option>
+								<option value="slide">Slide</option>
+								<option value="scale">Scale</option>
+							</select></div>
+						<div class="setting-item"><label>Show Seconds</label><input type="checkbox"
+								id="setting-show-sec"></div>
+						<div class="setting-item"><label>Seconds Size</label>
+							<div class="range-container"><input type="range" id="setting-sec-scale" min="0.2" max="1.0"
+									step="0.05" value="0.4"><span class="range-value" id="val-sec-scale">0.4</span>
+							</div>
+						</div>
+						<div class="setting-item"><label>Clock Opacity</label>
+							<div class="range-container"><input type="range" id="setting-clock-opacity" min="0" max="1"
+									step="0.05" value="0.85"><span class="range-value"
+									id="val-clock-opacity">0.85</span></div>
+						</div>
 					</div>
-					<div class="setting-item">
-						<label>Edit Focus List (Click to toggle)</label>
-						<input type="checkbox" id="setting-edit-focus-mode">
+					<div class="settings-group">
+						<h3>Date Options</h3>
+						<div class="setting-item"><label>Show Nepali Date</label><input type="checkbox"
+								id="setting-show-nepali-date"></div>
+					</div>
+					<div class="settings-group">
+						<h3>Spacing</h3>
+						<div class="setting-item"><label>Hour:Min Margin</label>
+							<div class="range-container"><input type="range" id="setting-sep-margin" min="0" max="100"
+									step="1" value="10"><span class="range-value" id="val-sep-margin">10</span></div>
+						</div>
+						<div class="setting-item"><label>Min:Sec Margin</label>
+							<div class="range-container"><input type="range" id="setting-sec-sep-margin" min="0"
+									max="100" step="1" value="5"><span class="range-value"
+									id="val-sec-sep-margin">5</span></div>
+						</div>
 					</div>
 				</div>
 
-				<div class="settings-group">
-					<h3>Interface</h3>
-					<div class="setting-item">
-						<label>Show Seconds</label>
-						<input type="checkbox" id="setting-show-sec">
-					</div>
-					<div class="setting-item">
-						<label>Show Icons</label>
-						<input type="checkbox" id="setting-icons" checked>
-					</div>
-					<div class="setting-item">
-						<label>Enable Test Mode</label>
-						<input type="checkbox" id="setting-test-mode">
-					</div>
-					<div class="setting-item">
-						<label>Clock Format</label>
-						<select id="setting-clock-format">
-							<option value="24h">24 Hour</option>
-							<option value="12h">12 Hour</option>
-						</select>
-					</div>
-					<div class="setting-item">
-						<label>Text Alignment</label>
-						<select id="setting-text-align">
-							<option value="left">Left</option>
-							<option value="center">Center</option>
-							<option value="right" selected>Right</option>
-						</select>
-					</div>
-					<div class="setting-item">
-						<label>Clock Colon Margin</label>
-						<div class="range-container">
-							<input type="range" id="setting-sep-margin" min="0" max="100" step="1" value="10">
-							<span class="range-value" id="val-sep-margin">10</span>
+				<div class="tab-content" id="tab-layout">
+					<div class="settings-group">
+						<h3>Page Layout</h3>
+						<div class="setting-item"><label>Text Alignment</label><select id="setting-text-align">
+								<option value="left">Left</option>
+								<option value="center">Center</option>
+								<option value="right" selected>Right</option>
+							</select></div>
+						<div class="setting-item"><label>Folders per Row</label>
+							<div class="range-container"><input type="range" id="setting-folders-per-row" min="1"
+									max="6" step="1" value="3"><span class="range-value"
+									id="val-folders-per-row">3</span></div>
 						</div>
-					</div>
-					<div class="setting-item">
-						<label>Second Colon Margin</label>
-						<div class="range-container">
-							<input type="range" id="setting-sec-sep-margin" min="0" max="100" step="1" value="5">
-							<span class="range-value" id="val-sec-sep-margin">5</span>
-						</div>
-					</div>
-					<div class="setting-item">
-						<label>Settings Label Opacity</label>
-						<div class="range-container">
-							<input type="range" id="setting-settings-opacity" min="0" max="1" step="0.05" value="0.4">
-							<span class="range-value" id="val-settings-opacity">0.4</span>
-						</div>
-					</div>
-					<div class="setting-item">
-						<label>Tab Title</label>
-						<input type="text" id="setting-tab-title" placeholder="Mero Tab">
+						<div class="setting-item"><label>Show Bookmark Icons</label><input type="checkbox"
+								id="setting-icons" checked></div>
 					</div>
 				</div>
 
+				<div class="tab-content" id="tab-focus">
+					<div class="settings-group">
+						<h3>Focus Settings</h3>
+						<div class="setting-item"><label>Enable Focus Mode</label><input type="checkbox"
+								id="setting-focus-mode"></div>
+						<div class="setting-item"><label>Edit Focus List</label><input type="checkbox"
+								id="setting-edit-focus-mode"></div>
+						<p class="setting-hint">When Focus Mode is active, only selected bookmarks are clickable. Others
+							will be dimmed and disabled.</p>
+					</div>
+				</div>
 
-				<button id="reset-settings" class="danger-button">Reset to Default</button>
+				<div class="tab-content" id="tab-advanced">
+					<div class="settings-group">
+						<h3>General</h3>
+						<div class="setting-item"><label>Tab Title</label><input type="text" id="setting-tab-title"
+								placeholder="Mero Tab"></div>
+						<div class="setting-item"><label>Settings Label Opacity</label>
+							<div class="range-container"><input type="range" id="setting-settings-opacity" min="0"
+									max="1" step="0.05" value="0.4"><span class="range-value"
+									id="val-settings-opacity">0.4</span></div>
+						</div>
+						<div class="setting-item"><label>Test Mode</label><input type="checkbox" id="setting-test-mode">
+						</div>
+					</div>
+					<div class="settings-actions"><button id="reset-settings" class="danger-button">Reset to
+							Defaults</button></div>
+				</div>
 			</div>
 		</div>
 	</div>

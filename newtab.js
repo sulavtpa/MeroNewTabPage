@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = {
 	foldersPerRow: 3,
 	showSeconds: false,
 	showIcons: true,
+	showNepaliDate: false,
 	folderOrder: '',
 	tabTitle: 'Mero Tab',
 	sepMargin: 10,
@@ -20,6 +21,7 @@ const DEFAULT_SETTINGS = {
 	clockOpacity: 0.85,
 	fontCustom: '',
 	clockFormat: '24h',
+	clockAnimation: 'flip',
 	testMode: false,
 	focusMode: false,
 	editFocusMode: false,
@@ -50,6 +52,8 @@ const $ = {
 	bookmarksRoot: query('#bookmarks-root'),
 	settingsToggle: query('#settings-toggle'),
 	settingsPanel: query('#settings-panel'),
+	sidebarItems: document.querySelectorAll('.sidebar-item'),
+	tabContents: document.querySelectorAll('.tab-content'),
 	resetButton: query('#reset-settings'),
 	themeSelect: query('#setting-theme'),
 	bgInput: query('#setting-bg'),
@@ -63,6 +67,7 @@ const $ = {
 	foldersPerRowInput: query('#setting-folders-per-row'),
 	showSecToggle: query('#setting-show-sec'),
 	iconsToggle: query('#setting-icons'),
+	nepaliDateToggle: query('#setting-show-nepali-date'),
 	valScale: query('#val-scale'),
 	valSecScale: query('#val-sec-scale'),
 	valFoldersPerRow: query('#val-folders-per-row'),
@@ -77,6 +82,7 @@ const $ = {
 	customFontContainer: query('#custom-font-container'),
 	customFontInput: query('#setting-font-custom'),
 	clockFormatSelect: query('#setting-clock-format'),
+	clockAnimationSelect: query('#setting-clock-animation'),
 	testModeToggle: query('#setting-test-mode'),
 	focusModeToggle: query('#setting-focus-mode'),
 	editFocusModeToggle: query('#setting-edit-focus-mode'),
@@ -97,24 +103,23 @@ const debounce = (fn, wait) => {
 	};
 };
 
-const saveSettings = (immediate = false) => {
-	const save = () => {
-		try {
-			// Always save to localStorage for fast initial theme application
-			localStorage.setItem('mero_settings', JSON.stringify(settings));
-
-			if (globalThis.chrome?.storage?.sync) {
-				chrome.storage.sync.set(settings);
-			}
-		} catch (e) {
-			console.error('Mero Tab: Failed to save settings', e);
+const performSave = () => {
+	try {
+		localStorage.setItem('mero_settings', JSON.stringify(settings));
+		if (globalThis.chrome?.storage?.sync) {
+			chrome.storage.sync.set(settings);
 		}
-	};
-	immediate ? save() : debouncedSave();
-	applySettings();
+	} catch (e) {
+		console.error('Mero Tab: Failed to save settings', e);
+	}
 };
 
-const debouncedSave = debounce(saveSettings, 300);
+const debouncedSave = debounce(performSave, 300);
+
+const saveSettings = (immediate = false) => {
+	immediate ? performSave() : debouncedSave();
+	applySettings();
+};
 
 async function loadSettings() {
 	try {
@@ -128,9 +133,7 @@ async function loadSettings() {
 		}
 		const saved = localStorage.getItem('mero_settings');
 		if (saved) settings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
-	} catch (e) {
-		console.warn('Mero Tab: Could not load settings, using defaults', e);
-	}
+	} catch (e) { }
 }
 
 function applySettings() {
@@ -154,12 +157,12 @@ function applySettings() {
 		'--sec-sep-margin': (settings.secSepMargin ?? 5) + 'px',
 		'--text-align': ({ left: 'flex-start', center: 'center', right: 'flex-end' })[settings.textAlign] ?? 'flex-end',
 		'--settings-trigger-opacity': settings.settingsOpacity ?? 0.4,
-		'--clock-opacity': settings.clockOpacity ?? 0.85
+		'--clock-opacity': settings.clockOpacity ?? 0.85,
+		'--text-align-simple': settings.textAlign ?? 'right'
 	};
 	Object.entries(cssVars).forEach(([prop, val]) => root.style.setProperty(prop, val));
 
 	if ($.customFontContainer) $.customFontContainer.style.display = settings.font === 'custom' ? 'flex' : 'none';
-
 	if ($.timeContainer) $.timeContainer.style.opacity = settings.clockOpacity ?? 0.85;
 	if ($.secondsContainer) $.secondsContainer.style.display = settings.showSeconds ? 'flex' : 'none';
 
@@ -178,6 +181,7 @@ function applySettings() {
 		[$.foldersPerRowInput, 'value', settings.foldersPerRow],
 		[$.showSecToggle, 'checked', settings.showSeconds],
 		[$.iconsToggle, 'checked', settings.showIcons],
+		[$.nepaliDateToggle, 'checked', settings.showNepaliDate],
 		[$.testModeToggle, 'checked', settings.testMode],
 		[$.focusModeToggle, 'checked', settings.focusMode],
 		[$.editFocusModeToggle, 'checked', settings.editFocusMode],
@@ -187,9 +191,10 @@ function applySettings() {
 		[$.settingsOpacityInput, 'value', settings.settingsOpacity],
 		[$.customFontInput, 'value', settings.fontCustom || ''],
 		[$.clockFormatSelect, 'value', settings.clockFormat],
+		[$.clockAnimationSelect, 'value', settings.clockAnimation],
 		[$.tabTitleInput, 'value', settings.tabTitle || 'Mero Tab']
 	];
-	inputs.forEach(([el, prop, val]) => { if (el) el[prop] = val; });
+	inputs.forEach(([el, prop, val]) => { if (el && document.activeElement !== el) el[prop] = val; });
 
 	const displays = [
 		[$.valScale, settings.scale ?? 1.0, 1],
@@ -200,12 +205,9 @@ function applySettings() {
 		[$.valSecSepMargin, settings.secSepMargin ?? 5],
 		[$.valSettingsOpacity, settings.settingsOpacity ?? 0.4, 2]
 	];
-	displays.forEach(([el, val, decimals]) => {
-		if (el) el.textContent = decimals !== undefined ? val.toFixed(decimals) : val;
-	});
+	displays.forEach(([el, val, decimals]) => { if (el) el.textContent = decimals !== undefined ? val.toFixed(decimals) : val; });
 
 	document.title = settings.tabTitle || 'Mero Tab';
-
 	updateGreeting();
 }
 
@@ -231,28 +233,75 @@ function updateClock(immediate = false) {
 
 	Object.keys(newDigits).forEach(key => {
 		if (newDigits[key] !== currentDigits[key]) {
-			flipDigit($.digits[key], newDigits[key], immediate);
+			animateDigit($.digits[key], newDigits[key], immediate);
 			currentDigits[key] = newDigits[key];
 		}
 	});
 
 	if ($.date) {
-		$.date.textContent = now.toLocaleDateString('en-US', {
-			weekday: 'long', month: 'long', day: 'numeric'
-		});
+		const englishDate = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+		try {
+			if (settings.showNepaliDate) {
+				$.date.textContent = `${englishDate} • ${getNepaliDate(now)}`;
+			} else {
+				$.date.textContent = englishDate;
+			}
+		} catch (e) {
+			$.date.textContent = englishDate;
+		}
 	}
 }
 
-function flipDigit(el, newValue, immediate) {
+function getNepaliDate(date) {
+	const months = ['Baishakh', 'Jestha', 'Asar', 'Sawan', 'Bhadau', 'Asoj', 'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'];
+	const refDate = new Date(2026, 2, 7);
+	const refBS = { y: 2082, m: 11, d: 23 };
+
+	const diffTime = date.getTime() - refDate.getTime();
+	const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+	if (diffDays === 0) return `${months[refBS.m - 1]} ${refBS.d}, ${refBS.y} BS`;
+
+	let d = refBS.d + diffDays;
+	let m = refBS.m;
+	let y = refBS.y;
+
+	const getDaysInMonth = (month, year) => {
+		const monthDays = [31, 31, 31, 32, 31, 30, 30, 30, 30, 29, 30, 30];
+		return monthDays[month - 1] || 30;
+	};
+
+	let limit = 0;
+	while (d > getDaysInMonth(m, y) && limit < 1000) {
+		d -= getDaysInMonth(m, y);
+		m++;
+		if (m > 12) { m = 1; y++; }
+		limit++;
+	}
+	limit = 0;
+	while (d < 1 && limit < 1000) {
+		m--;
+		if (m < 1) { m = 12; y--; }
+		d += getDaysInMonth(m, y);
+		limit++;
+	}
+
+	return `${months[m - 1]} ${d}, ${y} BS`;
+}
+
+function animateDigit(el, newValue, immediate) {
 	if (!el) return;
 	if (immediate) {
 		el.textContent = newValue;
 		return;
 	}
-	el.classList.add('flipping');
+	const animationClass = `animate-${settings.clockAnimation}`;
+	el.classList.add(animationClass);
 	setTimeout(() => {
 		el.textContent = newValue;
-		el.classList.remove('flipping');
+	}, 100);
+	setTimeout(() => {
+		el.classList.remove(animationClass);
 	}, 200);
 }
 
@@ -306,12 +355,14 @@ function renderBookmarks(rootNode) {
 	grid.className = 'bookmarks-grid';
 
 	const folderMap = new Map();
-	let topItems = [];
+	const topItems = [];
 
 	rootNode.children?.forEach(child => {
-		(child.children ? folderMap : topItems).set?.(
-			child.title?.toLowerCase().trim(), child
-		) || topItems.push(child);
+		if (child.children) {
+			folderMap.set(child.title?.toLowerCase().trim(), child);
+		} else {
+			topItems.push(child);
+		}
 	});
 	if (topItems.length) folderMap.set('bookmarks', { title: 'Bookmarks', children: topItems, id: 'virtual-root' });
 
@@ -458,8 +509,7 @@ function setupEventListeners() {
 	});
 
 	document.addEventListener('click', e => {
-		if ($.settingsPanel?.classList.contains('open') &&
-			!$.settingsPanel.contains(e.target) && e.target !== $.settingsToggle) {
+		if ($.settingsPanel?.classList.contains('open') && !$.settingsPanel.contains(e.target) && !$.settingsToggle.contains(e.target)) {
 			$.settingsPanel.classList.remove('open');
 		}
 	});
@@ -468,8 +518,10 @@ function setupEventListeners() {
 
 	[$.bgInput, $.accentInput, $.fgInput].forEach(input => {
 		input?.addEventListener('input', e => {
-			set('theme', 'custom');
-			set(input.id.replace('setting-', ''), e.target.value);
+			const key = input.id.replace('setting-', '').replace(/-([a-z])/g, g => g[1].toUpperCase());
+			settings.theme = 'custom';
+			settings[key] = e.target.value;
+			saveSettings(false);
 		});
 	});
 
@@ -494,55 +546,24 @@ function setupEventListeners() {
 	});
 
 	$.textAlignSelect?.addEventListener('change', e => set('textAlign', e.target.value, true));
-
-	$.clockFormatSelect?.addEventListener('change', e => {
-		settings.clockFormat = e.target.value;
-		saveSettings(true);
-		updateClock(true);
-	});
-
+	$.clockFormatSelect?.addEventListener('change', e => { set('clockFormat', e.target.value, true); updateClock(true); });
+	$.clockAnimationSelect?.addEventListener('change', e => set('clockAnimation', e.target.value, true));
 	$.showSecToggle?.addEventListener('change', e => set('showSeconds', e.target.checked, true));
-	$.iconsToggle?.addEventListener('change', e => {
-		settings.showIcons = e.target.checked;
-		saveSettings(true);
-		loadBookmarks();
-	});
-	$.testModeToggle?.addEventListener('change', e => {
-		settings.testMode = e.target.checked;
-		saveSettings(true);
-		updateClock(true);
-		loadBookmarks();
-	});
+	$.iconsToggle?.addEventListener('change', e => { set('showIcons', e.target.checked, true); loadBookmarks(); });
+	$.testModeToggle?.addEventListener('change', e => { set('testMode', e.target.checked, true); updateClock(true); loadBookmarks(); });
+	$.focusModeToggle?.addEventListener('change', e => { set('focusMode', e.target.checked, true); if (e.target.checked && settings.editFocusMode) set('editFocusMode', false, true); applySettings(); });
+	$.editFocusModeToggle?.addEventListener('change', e => { set('editFocusMode', e.target.checked, true); if (e.target.checked && settings.focusMode) set('focusMode', false, true); applySettings(); });
+	$.tabTitleInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { set('tabTitle', e.target.value, true); e.target.blur(); } });
+	$.resetButton?.addEventListener('click', () => { if (confirm('Reset all settings to default?')) { settings = { ...DEFAULT_SETTINGS }; saveSettings(true); loadBookmarks(); } });
+	$.nepaliDateToggle?.addEventListener('change', e => { set('showNepaliDate', e.target.checked, true); updateClock(true); });
 
-	$.focusModeToggle?.addEventListener('change', e => {
-		set('focusMode', e.target.checked, true);
-		if (e.target.checked && settings.editFocusMode) {
-			set('editFocusMode', false, true);
-		}
-		applySettings();
-	});
-
-	$.editFocusModeToggle?.addEventListener('change', e => {
-		set('editFocusMode', e.target.checked, true);
-		if (e.target.checked && settings.focusMode) {
-			set('focusMode', false, true);
-		}
-		applySettings();
-	});
-
-	$.tabTitleInput?.addEventListener('keydown', e => {
-		if (e.key === 'Enter') {
-			set('tabTitle', e.target.value, true);
-			e.target.blur();
-		}
-	});
-
-	$.resetButton?.addEventListener('click', () => {
-		if (confirm('Reset all settings to default?')) {
-			settings = { ...DEFAULT_SETTINGS };
-			saveSettings(true);
-			loadBookmarks();
-		}
+	$.sidebarItems?.forEach(item => {
+		item.addEventListener('click', () => {
+			const tabId = item.dataset.tab;
+			$.sidebarItems.forEach(i => i.classList.remove('active'));
+			item.classList.add('active');
+			$.tabContents.forEach(content => content.classList.toggle('active', content.id === `tab-${tabId}`));
+		});
 	});
 }
 
