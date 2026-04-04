@@ -5,7 +5,7 @@ A minimalist, high-performance browser new tab page featuring bookmarks, customi
 ## Features
 
 - Clean, modern interface with flip-clock animation
-- Multiple built-in themes (Dark, Light, Everforest, Gruvbox, Dracula)
+- Multiple built-in themes (Dark, Light, Everforest, Gruvbox, Dracula.. and more)
 - Custom color and font support
 - Drag-and-drop bookmark organization
 - Fully customizable layout and appearance
@@ -31,17 +31,21 @@ A minimalist, high-performance browser new tab page featuring bookmarks, customi
 
 ## Customization
 
-Click "Settings" in the bottom-right corner to access:
+Click the **Settings** icon in the bottom-right corner to personalize your experience:
 
-- **Appearance**: Themes, colors, backgrounds
-- **Typography**: Font family, sizes, opacity
-- **Interface**: Clock format, alignment, margins
+- **Appearance**: Themes, custom colors, and backgrounds
+- **Typography**: Font family selection, sizes, and opacity
+- **Interface**: Clock format, alignment, and margin adjustments
+
+## Credits
+
+### Font Inclusion
+I have included `LibreFranklin-VariableFont_wght.ttf` within the `/ttf` folder by default. It makes sure that the font loads instantly and works offline without requiring internet.
+
+### Font Attribution
+**Libre Franklin** is designed by:
+*Andrés Briganti, Mateo Zaragoza, Guillermo Rauch, Evil Rabbit, José Rago, Facundo Santana*
 
 ## License
 
-MIT License - See LICENSE_MIT.txt for details
-
-## Credits
-I have by default included LibreFranklin-VariableFont_wght.ttf inside /ttf folder that im using by default.
-Ensures the font loads instantly without requiring an internet connection.
-Font Libre Franklin Designed by Andrés Briganti, Mateo Zaragoza, Guillermo Rauch, Evil Rabbit, José Rago, Facundo Santana
+This project is licensed under the **MIT License** - see the [LICENSE_MIT.txt](LICENSE_MIT.txt) file for details.
