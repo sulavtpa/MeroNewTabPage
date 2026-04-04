@@ -5,7 +5,7 @@ const DEFAULT_SETTINGS = {
 	bg: '#1f1f23',
 	fg: '#ffffff',
 	accent: '#ffffff',
-	font: "'Libre Franklin', sans-serif",
+	font: "'Libre Franklin', system-ui, -apple-system, sans-serif",
 	scale: 1.0,
 	secScale: 0.4,
 	foldersPerRow: 3,
@@ -149,7 +149,7 @@ function applySettings() {
 		'--bg': settings.bg,
 		'--fg': settings.fg,
 		'--accent': settings.accent,
-		'--font-main': settings.font === 'custom' ? (settings.fontCustom || "'Libre Franklin', sans-serif") : settings.font,
+		'--font-main': settings.font === 'custom' ? (settings.fontCustom || "'Libre Franklin', system-ui, -apple-system, sans-serif") : settings.font,
 		'--scale': settings.scale ?? 1.0,
 		'--sec-scale': settings.secScale ?? 0.4,
 		'--folders-per-row': settings.foldersPerRow ?? 3,
@@ -268,7 +268,7 @@ function getNepaliDate(date) {
 	let y = refBS.y;
 
 	const getDaysInMonth = (month, year) => {
-		const monthDays = [31, 31, 31, 32, 31, 30, 30, 30, 30, 29, 30, 30];
+		const monthDays = [31, 31, 31, 32, 31, 30, 30, 30, 30, 29, 29, 30];
 		return monthDays[month - 1] || 30;
 	};
 
