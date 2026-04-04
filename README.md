@@ -41,3 +41,7 @@ Click "Settings" in the bottom-right corner to access:
 
 MIT License - See LICENSE_MIT.txt for details
 
+## Credits
+I have by default included LibreFranklin-VariableFont_wght.ttf inside /ttf folder that im using by default.
+Ensures the font loads instantly without requiring an internet connection.
+Font Libre Franklin Designed by Andrés Briganti, Mateo Zaragoza, Guillermo Rauch, Evil Rabbit, José Rago, Facundo Santana

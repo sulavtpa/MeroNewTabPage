@@ -1,3 +1,9 @@
+@font-face {
+	font-family: 'Libre Franklin';
+	src: url('/ttf/LibreFranklin-VariableFont_wght.ttf') format('truetype');
+	font-weight: 100 900;
+}
+
 :root {
 	--bg: #1f1f23;
 	--fg: #ffffff;
@@ -5,7 +11,7 @@
 	--dim: #888888;
 	--border: rgba(255, 255, 255, 0.1);
 	--panel-bg: #0a0a0a;
-	--font-main: 'Inter', system-ui, -apple-system, sans-serif;
+	--font-main: 'Libre Franklin', system-ui, -apple-system, sans-serif;
 	--scale: 1.0;
 	--sec-scale: 0.4;
 	--clock-opacity: 0.85;
@@ -517,12 +523,10 @@ body.edit-focus-mode .bookmark-item:hover {
 @keyframes tabFadeIn {
 	from {
 		opacity: 0;
-		transform: translateX(20px);
 	}
 
 	to {
 		opacity: 1;
-		transform: translateX(0);
 	}
 }
 
@@ -570,7 +574,6 @@ input[type="text"] {
 	outline: none;
 	font-family: inherit;
 	font-size: 14px;
-	transition: all 0.2s ease;
 	color-scheme: dark;
 }
 
@@ -623,11 +626,6 @@ input[type="range"]::-webkit-slider-thumb {
 	background: #ffffff;
 	border-radius: 50%;
 	cursor: pointer;
-	transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-input[type="range"]:hover::-webkit-slider-thumb {
-	transform: scale(1.2);
 }
 
 input[type="color"] {
@@ -658,7 +656,6 @@ input[type="color"]::-webkit-color-swatch {
 	background: rgba(255, 255, 255, 0.1);
 	border-radius: 20px;
 	position: relative;
-	transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 	cursor: pointer;
 }
 
@@ -675,7 +672,6 @@ input[type="color"]::-webkit-color-swatch {
 	background: #ffffff;
 	top: 3px;
 	left: 3px;
-	transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .setting-item input[type="checkbox"]:checked::after {
@@ -711,14 +707,12 @@ input[type="color"]::-webkit-color-swatch {
 	border-radius: 12px;
 	font-size: 14px;
 	font-weight: 700;
-	transition: all 0.3s ease;
 	cursor: pointer;
 }
 
 .danger-button:hover {
 	background: #ff3b30;
 	color: white;
-	transform: translateY(-2px);
 }
 
 @media (max-width: 800px) {

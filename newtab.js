@@ -5,7 +5,7 @@ const DEFAULT_SETTINGS = {
 	bg: '#1f1f23',
 	fg: '#ffffff',
 	accent: '#ffffff',
-	font: "'Inter', sans-serif",
+	font: "'Libre Franklin', sans-serif",
 	scale: 1.0,
 	secScale: 0.4,
 	foldersPerRow: 3,
@@ -149,7 +149,7 @@ function applySettings() {
 		'--bg': settings.bg,
 		'--fg': settings.fg,
 		'--accent': settings.accent,
-		'--font-main': settings.font === 'custom' ? (settings.fontCustom || "'Inter', sans-serif") : settings.font,
+		'--font-main': settings.font === 'custom' ? (settings.fontCustom || "'Libre Franklin', sans-serif") : settings.font,
 		'--scale': settings.scale ?? 1.0,
 		'--sec-scale': settings.secScale ?? 0.4,
 		'--folders-per-row': settings.foldersPerRow ?? 3,
@@ -254,10 +254,11 @@ function updateClock(immediate = false) {
 
 function getNepaliDate(date) {
 	const months = ['Baishakh', 'Jestha', 'Asar', 'Sawan', 'Bhadau', 'Asoj', 'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'];
-	const refDate = new Date(2026, 2, 7);
+	const targetDateUTC = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+	const refDateUTC = Date.UTC(2026, 2, 7);
 	const refBS = { y: 2082, m: 11, d: 23 };
 
-	const diffTime = date.getTime() - refDate.getTime();
+	const diffTime = targetDateUTC - refDateUTC;
 	const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
 	if (diffDays === 0) return `${months[refBS.m - 1]} ${refBS.d}, ${refBS.y} BS`;
